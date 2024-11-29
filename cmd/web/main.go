@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/alexedwards/scs/v2"
+	"github.com/fouched/go-jobportal/internal/driver"
+	"github.com/fouched/go-jobportal/internal/models"
 	"html/template"
 	"log"
 	"net/http"
@@ -24,6 +26,7 @@ type application struct {
 	errorLog      *log.Logger
 	templateCache map[string]*template.Template
 	version       string
+	DB            models.DBModel
 	Session       *scs.SessionManager
 }
 
@@ -46,6 +49,13 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
+	// set up db conn
+	conn, err := driver.OpenDB(cfg.dsn)
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+	defer conn.Close()
+
 	// set up session
 	session = scs.New()
 	session.Lifetime = 24 * time.Hour
@@ -62,10 +72,11 @@ func main() {
 		errorLog:      errorLog,
 		templateCache: tc,
 		version:       version,
+		DB:            models.DBModel{DB: conn},
 		Session:       session,
 	}
 
-	err := app.serve()
+	err = app.serve()
 	if err != nil {
 		app.errorLog.Println(err)
 		log.Fatalln(err)
