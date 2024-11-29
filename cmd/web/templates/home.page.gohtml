@@ -1,0 +1,53 @@
+{{template "base" .}}
+
+<body class="background">
+{{define "content"}}
+    <nav class="main_div">
+        <div class="logo_left">
+            <label class="logo">
+                hotdevjobs
+            </label>
+            <label class="logo_com">
+                .com
+            </label>
+        </div>
+        <div class="logo_right">
+            <label class="Candidate_login_btn">
+                <a href="#">
+                    Job Candidate Login
+                </a>
+                <a href="#">
+                    /Register
+                </a>
+            </label>
+            <label class="Recruiter_login_btn">
+                <a href="#">
+                    Recruiter Login
+                </a>
+                <a href="#">
+                    /Register
+                </a>
+
+            </label>
+        </div>
+    </nav>
+    <form action="">
+        <div class="searchBox">
+            <div class="inner">
+
+                <input type="text" placeholder="Search for a job" name="job" value=""/>
+                <input type="text" placeholder="Enter a location" name="location" value=""/>
+                <button type="submit"><i class="fa fa-search"></i></button>
+
+            </div>
+        </div>
+    </form>
+    <footer>
+        <label class="copy-right">Copyright © hotdevjobs.com</label>
+    </footer>
+{{end}}
+
+{{define "js"}}
+
+{{end}}
+</body>
