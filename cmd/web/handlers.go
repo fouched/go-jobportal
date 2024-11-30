@@ -31,6 +31,7 @@ func (app *application) ShowRegister(w http.ResponseWriter, r *http.Request) {
 	val := validator.New()
 	// testing...
 	//val.Check(false, "UserExists", "User already registered")
+	//val.Check(false, "InvalidEmail", "Invalid email")
 
 	if err := app.renderTemplate(w, r, "register", &templateData{
 		Data:      data,
