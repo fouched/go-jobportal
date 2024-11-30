@@ -3,7 +3,7 @@ package main
 import (
 	"embed"
 	"fmt"
-	"github.com/fouched/go-jobportal/internal/validation"
+	"github.com/fouched/go-jobportal/internal/validator"
 	"html/template"
 	"net/http"
 	"strings"
@@ -22,7 +22,7 @@ type templateData struct {
 	Error           string
 	IsAuthenticated int
 	CSSVersion      string
-	Form            *validation.Form
+	Validator       *validator.Validator
 }
 
 // with the go embed directive below we can compile

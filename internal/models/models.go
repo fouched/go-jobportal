@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-const dbTimeout = 300 * time.Second
+const dbTimeout = 3 * time.Second
 
 // DBModel is the type for database connection values
 type DBModel struct {
