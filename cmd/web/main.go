@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/alexedwards/scs/mysqlstore"
 	"github.com/alexedwards/scs/v2"
 	"github.com/fouched/go-jobportal/internal/driver"
 	"github.com/fouched/go-jobportal/internal/models"
@@ -62,7 +63,7 @@ func main() {
 	// we use persistent storage iso cookies for session data, this allows us to
 	// restart the server without users losing the login / session information
 	// https://github.com/alexedwards/scs has various options available
-	//session.Store = mysqlstore.New(conn)
+	session.Store = mysqlstore.New(conn)
 
 	tc := make(map[string]*template.Template)
 

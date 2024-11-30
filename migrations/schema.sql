@@ -174,6 +174,22 @@ CREATE TABLE `schema_migration` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `sessions`
+--
+
+DROP TABLE IF EXISTS `sessions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `sessions` (
+  `token` char(43) NOT NULL,
+  `data` blob NOT NULL,
+  `expiry` timestamp(6) NOT NULL,
+  PRIMARY KEY (`token`),
+  KEY `sessions_expiry_idx` (`expiry`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `skills`
 --
 
@@ -236,4 +252,4 @@ CREATE TABLE `users_type` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2024-11-24 11:54:25
+-- Dump completed on 2024-11-30 10:37:00
