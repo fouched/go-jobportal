@@ -52,6 +52,7 @@ func (m *DBModel) GetUserByEmail(email string) (User, error) {
 	defer cancel()
 
 	var u User
+	var ut UserType
 	query := `
 		select 
 		    u.user_id, u.email, u.is_active, u.registration_date, u.user_type_id,
@@ -69,13 +70,14 @@ func (m *DBModel) GetUserByEmail(email string) (User, error) {
 		&u.Email,
 		&u.IsActive,
 		&u.RegistrationDate,
-		&u.UserType.ID,
-		&u.UserType.UserTypeName,
+		&ut.ID,
+		&ut.UserTypeName,
 	)
 	if err != nil {
 		return u, err
 	}
 
+	u.UserType = &ut
 	return u, nil
 }
 
