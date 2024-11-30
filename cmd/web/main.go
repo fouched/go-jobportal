@@ -38,7 +38,7 @@ var session *scs.SessionManager
 
 func main() {
 	// register struct types that needs to be stored in the session
-	//gob.Register(TransactionData{})
+	//gob.ShowRegister(TransactionData{})
 
 	var cfg config
 

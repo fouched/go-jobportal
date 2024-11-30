@@ -46,3 +46,57 @@ func (m *DBModel) GetAllUserTypes() ([]*UserType, error) {
 
 	return userTypes, nil
 }
+
+func (m *DBModel) GetUserByEmail(email string) (User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	var u User
+	query := `
+		select 
+		    u.user_id, u.email, u.is_active, u.registration_date, u.user_type_id,
+		    ut.user_type_name
+		from 
+		    users u
+			left join users_type ut on u.user_type_id = ut.user_type_id
+		where 
+		    u.email = ?`
+
+	row := m.DB.QueryRowContext(ctx, query, email)
+
+	err := row.Scan(
+		&u.ID,
+		&u.Email,
+		&u.IsActive,
+		&u.RegistrationDate,
+		&u.UserType.ID,
+		&u.UserType.UserTypeName,
+	)
+	if err != nil {
+		return u, err
+	}
+
+	return u, nil
+}
+
+func (m *DBModel) AddUser(u User, hash string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `insert into users (email, is_active, password, registration_date, user_type_id)
+		values(?, ?, ?, ?, ?)`
+
+	_, err := m.DB.ExecContext(ctx, stmt,
+		u.Email,
+		u.IsActive,
+		hash,
+		time.Now(),
+		u.UserType.ID,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -12,7 +12,8 @@ func (app *application) routes() http.Handler {
 	mux.Use(middleware.Recoverer)
 
 	mux.Get("/", app.Home)
-	mux.Get("/register", app.Register)
+	mux.Get("/register", app.ShowRegister)
+	mux.Post("/register/new", app.RegisterNew)
 
 	fileServer := http.FileServer(http.Dir("./static/"))
 	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))

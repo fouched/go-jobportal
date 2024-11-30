@@ -1,6 +1,6 @@
 {{template "base" .}}
 {{define "title"}}
-    Register
+    Sign Up
 {{end}}
 <body>
 {{define "content"}}
@@ -28,9 +28,9 @@
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
-                                                {{with .Validator.Errors}}
+                                                {{with .Validator.Errors.UserExists}}
                                                 <div class="alert alert-danger" role="alert">
-                                                    <p>{{.}}</p>
+                                                    <span>{{.}}</span>
                                                 </div>
                                                 {{end}}
                                             </div>
@@ -71,7 +71,8 @@
                                             <select
                                                     required
                                                     class="form-control"
-                                                    id="userTypeId"
+                                                    id="userTypeID"
+                                                    name="userTypeID"
                                             >
                                                 {{range .Data.UserTypes}}
                                                     <option value="{{.ID}}">{{.UserTypeName}}</option>
