@@ -98,8 +98,16 @@ func (app *application) RegisterNew(w http.ResponseWriter, r *http.Request) {
 		val := validator.New()
 		val.Check(false, "UserExists", "User already registered")
 
+		userTypes, err := app.DB.GetAllUserTypes()
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+		data := make(map[string]interface{})
+		data["UserTypes"] = userTypes
+
 		if err := app.renderTemplate(w, r, "register", &templateData{
 			Validator: val,
+			Data:      data,
 		}); err != nil {
 			app.errorLog.Println(err)
 		}
