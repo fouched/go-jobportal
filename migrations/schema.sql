@@ -115,7 +115,7 @@ CREATE TABLE `job_seeker_profile` (
   `state` varchar(255) DEFAULT NULL,
   `work_authorization` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`user_account_id`),
-  CONSTRAINT `FKohp1poe14xlw56yxbwu2tpdm7` FOREIGN KEY (`user_account_id`) REFERENCES `users` (`user_id`)
+  CONSTRAINT `FKohp1poe14xlw56yxbwu2tpdm7` FOREIGN KEY (`user_account_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -155,7 +155,7 @@ CREATE TABLE `recruiter_profile` (
   `profile_photo` varchar(64) DEFAULT NULL,
   `state` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`user_account_id`),
-  CONSTRAINT `FK42q4eb7jw1bvw3oy83vc05ft6` FOREIGN KEY (`user_account_id`) REFERENCES `users` (`user_id`)
+  CONSTRAINT `FK42q4eb7jw1bvw3oy83vc05ft6` FOREIGN KEY (`user_account_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -252,4 +252,4 @@ CREATE TABLE `users_type` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2024-11-30 10:37:00
+-- Dump completed on 2024-12-01 21:21:00

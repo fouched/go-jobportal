@@ -66,7 +66,7 @@ CREATE TABLE job_seeker_profile
     state              varchar(255) DEFAULT NULL,
     work_authorization varchar(255) DEFAULT NULL,
     PRIMARY KEY (user_account_id),
-    CONSTRAINT FKohp1poe14xlw56yxbwu2tpdm7 FOREIGN KEY (user_account_id) REFERENCES users (user_id)
+    CONSTRAINT FKohp1poe14xlw56yxbwu2tpdm7 FOREIGN KEY (user_account_id) REFERENCES users (user_id) ON DELETE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8
   COLLATE = utf8_general_ci;
@@ -83,7 +83,7 @@ CREATE TABLE recruiter_profile
     profile_photo   varchar(64)  DEFAULT NULL,
     state           varchar(255) DEFAULT NULL,
     PRIMARY KEY (user_account_id),
-    CONSTRAINT FK42q4eb7jw1bvw3oy83vc05ft6 FOREIGN KEY (user_account_id) REFERENCES users (user_id)
+    CONSTRAINT FK42q4eb7jw1bvw3oy83vc05ft6 FOREIGN KEY (user_account_id) REFERENCES users (user_id) ON DELETE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8
   COLLATE = utf8_general_ci;

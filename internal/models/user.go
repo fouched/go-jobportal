@@ -100,5 +100,26 @@ func (m *DBModel) AddUser(u User, hash string) error {
 		return err
 	}
 
+	// Mysql / mariadb does not support "returning id"
+	// Use last_insert_id - The ID that was generated is maintained
+	// in the server on a per-connection basis.
+	query := "select LAST_INSERT_ID()"
+	row := m.DB.QueryRowContext(ctx, query)
+	err = row.Scan(&u.ID)
+	if err != nil {
+		return err
+	}
+
+	if u.UserType.ID == 1 {
+		stmt = "insert into recruiter_profile (user_account_id) values (?)"
+	} else {
+		stmt = "insert into job_seeker_profile (user_account_id) values (?)"
+	}
+	_, err = m.DB.ExecContext(ctx, stmt,
+		u.ID)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
