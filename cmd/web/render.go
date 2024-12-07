@@ -11,18 +11,19 @@ import (
 
 // TemplateData holds data sent from handlers to templates
 type templateData struct {
-	StringMap       map[string]string
-	IntMap          map[string]int
-	FloatMap        map[string]float32
-	BoolMap         map[string]bool
-	Data            map[string]interface{}
-	CSRFToken       string
-	Success         string
-	Warning         string
-	Error           string
-	IsAuthenticated int
-	CSSVersion      string
-	Validator       *validator.Validator
+	StringMap  map[string]string
+	IntMap     map[string]int
+	FloatMap   map[string]float32
+	BoolMap    map[string]bool
+	Data       map[string]interface{}
+	CSRFToken  string
+	Success    string
+	Warning    string
+	Error      string
+	AuthLevel  int
+	UserName   string
+	CSSVersion string
+	Validator  *validator.Validator
 }
 
 // with the go embed directive below we can compile
@@ -95,5 +96,11 @@ func (app *application) parseTemplate(partials []string, page, templateToRender 
 }
 
 func (app *application) addDefaultData(td *templateData, r *http.Request) *templateData {
+	if app.Session.Exists(r.Context(), "userID") {
+		td.AuthLevel = app.Session.GetInt(r.Context(), "userTypeID")
+		td.UserName = app.Session.GetString(r.Context(), "userName")
+	} else {
+		td.AuthLevel = 0
+	}
 	return td
 }

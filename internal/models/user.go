@@ -2,6 +2,8 @@ package models
 
 import (
 	"context"
+	"errors"
+	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
@@ -122,4 +124,28 @@ func (m *DBModel) AddUser(u User, hash string) error {
 	}
 
 	return nil
+}
+
+func (m *DBModel) Authenticate(email, password string) (int, int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	var id int
+	var userTypeId int
+	var hashedPassword string
+
+	row := m.DB.QueryRowContext(ctx, "select user_id, user_type_id, password from users where email = ?", email)
+	err := row.Scan(&id, &userTypeId, &hashedPassword)
+	if err != nil {
+		return id, userTypeId, err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	if err == bcrypt.ErrMismatchedHashAndPassword {
+		return 0, 0, errors.New("incorrect credentials")
+	} else if err != nil {
+		return 0, 0, err
+	}
+
+	return id, userTypeId, nil
 }

@@ -4,7 +4,129 @@
 {{end}}
 <body>
 {{define "content"}}
-    <h1>Dashboard</h1>
+<header class="navbar navbar-expand-lg navbar-dark">
+    <label class="mt-2 ms-5 font-weight-bold h5">
+        <a href="/admin/dashboard">hotdevjobs</a>
+        <span class="logo_com font-weight-bold h5" style="color: white">.com</span>
+    </label>
+    <button
+            class="navbar-toggler"
+            type="button"
+            data-toggle="collapse"
+            data-target="#navbarTogglerDemo02"
+            aria-controls="navbarTogglerDemo02"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+    >
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarToggler">
+        <ul class="navbar-nav m-auto mt-2 mt-lg-0">
+
+            {{if eq .AuthLevel 1}}<!--recruiter-->
+            <li class="nav-item ">
+                <a class="nav-link" href="/admin/dashboard/add"><i class="fa-solid fa-file-circle-plus"></i>Post New Job</a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="@{/dashboard/}"><i class="fa-solid fa-eye"></i>View Your Jobs</a>
+            </li>
+            <li class="nav-item ">
+                <a class="nav-link" href="/admin/recruiter-profile"><i class="fa-solid fa-pencil"></i>Edit Account</a>
+            </li>
+            {{end}}
+
+            {{if eq .AuthLevel 2}}<!--jobseeker-->
+            <li class="nav-item active">
+                <a class="nav-link" href="/admin/dashboard"><i class="fas fa-search"></i>Search for Jobs</a>
+            </li>
+            <li class="nav-item ">
+                <a class="nav-link" href="/admin/saved-jobs"><i class="fa-solid fa-eye"></i>View Saved Jobs</a>
+            </li>
+            <li class="nav-item ">
+                <a class="nav-link" href="/admin/job-seeker-profile"><i class="fa-solid fa-pencil"></i>Edit Profile</a>
+            </li>
+            {{end}}
+
+        </ul>
+        {{if .Data.FullName}}
+        <label class="nav-item nav-link px-2 me-3">{{.Data.FullName}}</label>
+        {{end}}
+
+        {{if .UserName}}
+        <label class="nav-item nav-link px-2 me-3">{{.UserName}}</label>
+        {{end}}
+
+        <button class="myBtn-light me-5" onclick="window.location.href='/logout'">Logout</button>
+    </div>
+</header>
+
+<section class="section">
+    <div class="sidenav px-5">
+    </div>
+    <article>
+
+        {{if eq .AuthLevel 1}}<!--recruiter-->
+        <div class="box">
+            <h1 class="primary-title">Recruiter Dashboard</h1>
+        </div>
+        {{end}}
+        {{if eq .AuthLevel 3}}<!--hide for now - stupid logic applied in Spring template... -->
+        <div class="box mt-3">
+            <label class="large-label px-3 mb-3" sec:authorize="hasAuthority('Job Seeker')">Search Results</label>
+            <th:block th:each="jobPost:${jobPost}">
+                <a
+                        th:href="@{/job-details-apply/{id}(id=${jobPost.jobPostId})}"
+                        style="text-decoration: none; color: black"
+                >
+                    <div
+                            onclick="window.location=/job-details-apply/{id}(id=${jobPost.jobPostId})"
+                            class="job-row"
+                    >
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="job-title text-left">
+                                    [[${jobPost.jobTitle}]]
+                                    <span
+                                            class="title-span"
+                                            sec:authorize="hasAuthority('Recruiter')"
+                                            th:text="'('+ @{${jobPost.totalCandidates}}+' Candidates Applied)'"
+                                    >(xx candidates applied)</span
+                                    >
+                                    <span
+                                            class="title-span"
+                                            sec:authorize="hasAuthority('Job Seeker')"
+                                            th:if="${jobPost.isActive == true}"
+                                    >(Applied)</span
+                                    >
+                                    <span
+                                            class="title-span"
+                                            sec:authorize="hasAuthority('Job Seeker')"
+                                            th:if="${jobPost.isSaved == true}"
+                                    >(Saved)</span
+                                    >
+                                </label>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <label
+                                        th:text="${jobPost.jobLocationId.city+', '+ jobPost.jobLocationId.state}"
+                                >
+                                    City State</label
+                                >
+                            </div>
+                            <div class="col-md-4 text-right">
+                                <label th:text="@{${jobPost.jobCompanyId.name}}"
+                                >Recruiter Company Name</label
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </th:block>
+        </div>
+        {{end}}
+    </article>
+</section>
 {{end}}
 
 {{define "js"}}
