@@ -5,8 +5,10 @@ import (
 	"errors"
 	"github.com/fouched/go-jobportal/internal/models"
 	"github.com/fouched/go-jobportal/internal/validator"
+	"github.com/fouched/toolkit/v2"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
+	"os"
 	"strconv"
 )
 
@@ -157,7 +159,93 @@ func (app *application) Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) Dashboard(w http.ResponseWriter, r *http.Request) {
-	if err := app.renderTemplate(w, r, "dashboard", &templateData{}); err != nil {
+	// we will only hit this route if authenticated, load the appropriate profile
+	data := make(map[string]interface{})
+	rp, err := app.DB.GetRecruiterProfile(app.Session.GetInt(r.Context(), "userID"))
+	if err != nil {
 		app.errorLog.Println(err)
 	}
+	if rp.FirstName != "" && rp.LastName != "" {
+		data["FullName"] = rp.FirstName + " " + rp.LastName
+	}
+
+	if rp.ProfilePhoto != "" {
+		data["PhotosImagePath"] = "/uploads/" + rp.ProfilePhoto
+	}
+
+	if err := app.renderTemplate(w, r, "dashboard", &templateData{
+		Data: data,
+	}); err != nil {
+		app.errorLog.Println(err)
+	}
+}
+
+func (app *application) RecruiterProfile(w http.ResponseWriter, r *http.Request) {
+	data := make(map[string]interface{})
+	rp, err := app.DB.GetRecruiterProfile(app.Session.GetInt(r.Context(), "userID"))
+	if err != nil {
+		app.errorLog.Println(err)
+	}
+
+	data["FirstName"] = rp.FirstName
+	data["LastName"] = rp.LastName
+	data["City"] = rp.City
+	data["State"] = rp.State
+	data["Country"] = rp.Country
+	data["Company"] = rp.Company
+
+	if err := app.renderTemplate(w, r, "recruiter-profile", &templateData{
+		Data: data,
+	}); err != nil {
+		app.errorLog.Println(err)
+	}
+}
+
+func (app *application) RecruiterProfileUpdate(w http.ResponseWriter, r *http.Request) {
+
+	t := toolkit.Tools{
+		MaxFileSize:      5 * 1024 * 1024 * 1024,
+		AllowedFileTypes: []string{"image/jpeg", "image/png", "image/gif"},
+	}
+
+	files, err := t.UploadFiles(r, "./uploads")
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	// UploadFiles also parsed the form, so it is available to us
+	rp := models.RecruiterProfile{
+		UserAccountID: app.Session.GetInt(r.Context(), "userID"),
+		FirstName:     r.Form.Get("firstName"),
+		LastName:      r.Form.Get("lastName"),
+		City:          r.Form.Get("city"),
+		State:         r.Form.Get("state"),
+		Country:       r.Form.Get("country"),
+		Company:       r.Form.Get("company"),
+	}
+
+	err = app.DB.UpdateRecruiterProfile(rp)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	// only update profile photo data if the user specified a file
+	if len(files) > 0 {
+		// delete previous profile photo
+		rp, _ := app.DB.GetRecruiterProfile(app.Session.GetInt(r.Context(), "userID"))
+		if rp.ProfilePhoto != "" {
+			_ = os.Remove("./uploads/" + rp.ProfilePhoto)
+		}
+
+		rp.ProfilePhoto = files[0].NewFileName
+		err = app.DB.UpdateRecruiterProfilePhoto(rp)
+		if err != nil {
+			app.errorLog.Println(err)
+			return
+		}
+	}
+
+	http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
 }

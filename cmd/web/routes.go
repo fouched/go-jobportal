@@ -21,10 +21,15 @@ func (app *application) routes() http.Handler {
 	mux.Route("/admin", func(mux chi.Router) {
 		mux.Use(app.Auth)
 		mux.Get("/dashboard", app.Dashboard)
+		mux.Get("/recruiter-profile", app.RecruiterProfile)
+		mux.Post("/recruiter-profile/add", app.RecruiterProfileUpdate)
 	})
 
 	fileServer := http.FileServer(http.Dir("./static/"))
 	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))
+
+	uploadsServer := http.FileServer(http.Dir("./uploads/"))
+	mux.Handle("/uploads/*", http.StripPrefix("/uploads", uploadsServer))
 
 	return mux
 }

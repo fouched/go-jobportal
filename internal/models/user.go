@@ -22,6 +22,39 @@ type UserType struct {
 	Users        []*User
 }
 
+type JobSeekerProfile struct {
+	UserAccountID     int
+	FirstName         string
+	LastName          string
+	City              string
+	State             string
+	Country           string
+	WorkAuthorization string
+	EmploymentType    string
+	Resume            string
+	ProfilePhoto      string
+	Skills            *[]Skills
+}
+
+type RecruiterProfile struct {
+	UserAccountID int
+	FirstName     string
+	LastName      string
+	City          string
+	State         string
+	Country       string
+	Company       string
+	ProfilePhoto  string
+}
+
+type Skills struct {
+	ID                int
+	Name              string
+	ExperienceLevel   string
+	YearsOfExperience string
+	JobSeekerProfile  JobSeekerProfile
+}
+
 func (m *DBModel) GetAllUserTypes() ([]*UserType, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -148,4 +181,93 @@ func (m *DBModel) Authenticate(email, password string) (int, int, error) {
 	}
 
 	return id, userTypeId, nil
+}
+
+func (m *DBModel) GetRecruiterProfile(userID int) (RecruiterProfile, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `
+		select user_account_id, company, city, state, country, first_name, last_name, coalesce(profile_photo, '') as profile_photo 
+		from recruiter_profile 
+		where user_account_id = ?
+	`
+
+	var rp RecruiterProfile
+	row := m.DB.QueryRowContext(ctx, query, userID)
+	err := row.Scan(
+		&rp.UserAccountID,
+		&rp.Company,
+		&rp.City,
+		&rp.State,
+		&rp.Country,
+		&rp.FirstName,
+		&rp.LastName,
+		&rp.ProfilePhoto,
+	)
+	if err != nil {
+		return rp, err
+	}
+
+	return rp, nil
+}
+
+func (m *DBModel) GetJobSeekerProfile(userID int) (JobSeekerProfile, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `
+		select user_account_id, city, state, country, employment_type, first_name, last_name, profile_photo, resume, work_authorization 
+		from job_seeker_profile 
+		where user_account_id = ?
+	`
+
+	var jp JobSeekerProfile
+	row := m.DB.QueryRowContext(ctx, query, userID)
+	err := row.Scan(
+		&jp.UserAccountID,
+		&jp.City,
+		&jp.State,
+		&jp.Country,
+		&jp.EmploymentType,
+		&jp.FirstName,
+		&jp.LastName,
+		&jp.ProfilePhoto,
+		&jp.Resume,
+		&jp.WorkAuthorization,
+	)
+	if err != nil {
+		return jp, err
+	}
+
+	return jp, nil
+}
+
+func (m *DBModel) UpdateRecruiterProfile(p RecruiterProfile) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	// update profile info
+	stmt := `update recruiter_profile set company = ?, city = ?, state = ?, country = ?, first_name = ?, last_name = ?
+		where user_account_id = ?`
+
+	_, err := m.DB.ExecContext(ctx, stmt, p.Company, p.City, p.State, p.Country, p.FirstName, p.LastName, p.UserAccountID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *DBModel) UpdateRecruiterProfilePhoto(p RecruiterProfile) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := "update recruiter_profile set profile_photo = ? where user_account_id = ?"
+	_, err := m.DB.ExecContext(ctx, stmt, p.ProfilePhoto, p.UserAccountID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

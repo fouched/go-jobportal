@@ -23,13 +23,12 @@
 
     <div class="collapse navbar-collapse" id="navbarToggler">
         <ul class="navbar-nav m-auto mt-2 mt-lg-0">
-
             {{if eq .AuthLevel 1}}<!--recruiter-->
             <li class="nav-item ">
                 <a class="nav-link" href="/admin/dashboard/add"><i class="fa-solid fa-file-circle-plus"></i>Post New Job</a>
             </li>
             <li class="nav-item active">
-                <a class="nav-link" href="@{/dashboard/}"><i class="fa-solid fa-eye"></i>View Your Jobs</a>
+                <a class="nav-link" href="/admin/dashboard"><i class="fa-solid fa-eye"></i>View Your Jobs</a>
             </li>
             <li class="nav-item ">
                 <a class="nav-link" href="/admin/recruiter-profile"><i class="fa-solid fa-pencil"></i>Edit Account</a>
@@ -47,14 +46,22 @@
                 <a class="nav-link" href="/admin/job-seeker-profile"><i class="fa-solid fa-pencil"></i>Edit Profile</a>
             </li>
             {{end}}
-
         </ul>
-        {{if .Data.FullName}}
-        <label class="nav-item nav-link px-2 me-3">{{.Data.FullName}}</label>
+
+        {{if .Data.PhotosImagePath}}
+        <img
+                class="rounded-circle me-3"
+                height="50px"
+                width="50x"
+                src="{{.Data.PhotosImagePath}}"
+                alt="profile photo"
+        />
         {{end}}
 
-        {{if .UserName}}
-        <label class="nav-item nav-link px-2 me-3">{{.UserName}}</label>
+        {{if .Data.FullName}}
+            <label class="nav-item nav-link px-2 me-3">{{.Data.FullName}}</label>
+        {{else if .UserName}}
+            <label class="nav-item nav-link px-2 me-3">{{.UserName}}</label>
         {{end}}
 
         <button class="myBtn-light me-5" onclick="window.location.href='/logout'">Logout</button>

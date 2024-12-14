@@ -1,0 +1,85 @@
+{{template "base" .}}
+{{define "title"}}
+    Profile Setup
+{{end}}
+<body>
+{{define "content"}}
+<div class="row" style="margin-right:0">
+    <div class="col-5 coffee_mug_background">
+        <div class="logo_left mt-3 pt-4 ms-5 pl-5">
+            <h2 class="logo" style="color: white">hotdevjobs <span class="logo_com">.com</span></h2>
+        </div>
+    </div>
+    <div class=" col-7">
+        <div class="myForm">
+            <form action="/admin/recruiter-profile/add" method="post" enctype="multipart/form-data">
+                <div class="row gutters">
+                    <div class="row mt-5">
+                        <div class="col-md-12">
+                            <div class="d-flex justify-content-center ">
+                                <h1 class="heading_font font-weight-bold">
+                                    Recruiter
+                                </h1>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div >
+                                    <h2 class="d-flex justify-content-center heading_font">
+                                        Set up your Profile
+                                    </h2>
+                                </div>
+                            </div>
+
+                            <div class="card-body ms-2.5">
+                                <label class="heading_font font_sub_heading_color">Name</label>
+                                <div class="row">
+                                    <div class="col-md-6 pr-1">
+                                        <input placeholder="First Name" id="firstName" name="firstName" type="text" value="{{.Data.FirstName}}" class="form-control"  />
+                                    </div>
+                                    <div class="col-md-6 pl-1">
+                                        <input placeholder="Last Name" id="lastName" name="lastName" type="text" value="{{.Data.LastName}}" class="form-control"  />
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 pr-1">
+                                        <input placeholder="City" id="city" name="city" type="text" value="{{.Data.City}}" class="form-control"  />
+                                    </div>
+                                    <div class="col-md-4 px-1">
+                                        <input placeholder="State" id="state" name="state" type="text" value="{{.Data.State}}" class="form-control"  />
+                                    </div>
+                                    <div class="col-md-4 pl-1">
+                                        <input placeholder="Country" id="country" name="country" type="text" value="{{.Data.Country}}" class="form-control"  />
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col">
+                                        <input placeholder="Company" id="company" name="company" type="text" value="{{.Data.Company}}" class="form-control"  />
+                                    </div>
+                                </div>
+                                <label class="heading_font font_sub_heading_color mt-2">Profile Photo</label>
+                                <div class="row">
+                                    <div class="col">
+                                        <input type="file" name="profileImage" class="form-control" accept="image/png, image/jpeg" />
+                                        <input type="text" id="profilePhoto" name="profilePhoto" class="form-control" hidden />
+                                    </div>
+                                </div>
+                                <div class="row mt-4">
+                                    <div class="col d-flex justify-content-center">
+                                        <button type="submit" class="btn btn-primary base_button px-4 py-2">Save</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{{end}}
+
+{{define "js"}}
+
+{{end}}
+</body>
