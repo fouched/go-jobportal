@@ -249,3 +249,43 @@ func (app *application) RecruiterProfileUpdate(w http.ResponseWriter, r *http.Re
 
 	http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
 }
+
+func (app *application) JobPostNew(w http.ResponseWriter, r *http.Request) {
+	if err := app.renderTemplate(w, r, "job", &templateData{}); err != nil {
+		app.errorLog.Println(err)
+	}
+}
+
+func (app *application) JobPostSave(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	jp := models.JobPost{
+		PostedById:  app.Session.GetInt(r.Context(), "userID"),
+		Description: r.Form.Get("descriptionOfJob"),
+		JobTitle:    r.Form.Get("jobTitle"),
+		JobType:     r.Form.Get("jobType"),
+		Salary:      r.Form.Get(""),
+		Remote:      r.Form.Get("remote"),
+		Location: &models.JobLocation{
+			City:    r.Form.Get("city"),
+			State:   r.Form.Get("state"),
+			Country: r.Form.Get("country"),
+		},
+		Company: &models.JobCompany{
+			Name: r.Form.Get("companyName"),
+			Logo: "",
+		},
+	}
+
+	err = app.DB.AddJobPost(jp)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
+}

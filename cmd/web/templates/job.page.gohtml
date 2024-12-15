@@ -1,0 +1,106 @@
+{{template "base" .}}
+
+{{define "title"}}
+    Add Job Post
+{{end}}
+
+{{define "css"}}
+    <link rel="stylesheet" type="text/css" media="all" href="/static/summernote-0.9.0/summernote-bs5.css"/>
+{{end}}
+
+<body>
+{{define "content"}}
+<div style="display: flex">
+    <div class="col-md-5 coffee_mug_background">
+        <div class="logo_left mt-3 pt-4 ms-5 pl-5">
+            <h2 class="logo" style="color: white">
+                hotdevjobs <span class="logo_com">.com</span>
+            </h2>
+        </div>
+    </div>
+    <div class="col-md-7 container myForm">
+        <form id="job-main-form" action="/admin/dashboard/add-save" method="post" class="job-add-form">
+            <input type="hidden" id="jobPostId" name="jobPostId">
+            <input type="hidden" id="jobLocationId" name="jobLocationId">
+            <input type="hidden" id="jobCompanyId" name="jobCompanyId">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="d-flex justify-content-center pt-3">
+                        <h1 class="heading_font font-weight-bold">Post New Job</h1>
+                    </div>
+                </div>
+            </div>
+            <label class="heading_font font_sub_heading_color">Job Details</label>
+            <div class="row" >
+                <div class="col-lg-12 form-group">
+                    <input id="jobTitle" name="jobTitle" type="text" class="form-control" placeholder="Job Title">
+                </div>
+            </div>
+            <div class="row">
+                    <div class="col-md-4 mt-1 form-group">
+                        <select id="jobType" name="jobType" class="form-control">
+                            <option value="">Employment Type</option>
+                            <option value="Full-time">Full-time</option>
+                            <option value="Part-time">Part-time</option>
+                            <option value="Freelance">Freelance</option>
+                            <option value="Internship">Internship</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mt-1 form-group">
+                        <select id="remote" name="remote" class="form-control">
+                            <option value="">Select a Remote</option>
+                            <option value="Remote-Only">Remote-Only</option>
+                            <option value="Office-Only">Office-Only</option>
+                            <option value="Partial-Remote"> Partial-Remote</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <input id="salary" name="salary" type="text" class="form-control" placeholder="Salary">
+                    </div>
+                <div class="row">
+                    <div class="col-md-12 form-group">
+                        <label class="mt-2 heading_font font_sub_heading_color">Description</label>
+                        <textarea type="text" rows="4" placeholder="Content" class="form-control"
+                                  id="descriptionOfJob" name="descriptionOfJob" autocomplete="off"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <label class="mt-2 heading_font font_sub_heading_color">Location</label>
+            <div class="row" >
+                <div class="col-md-4 form-group">
+                    <input id="city" name="city" type="text"  class="form-control" placeholder="City">
+                </div>
+                <div class="col-md-4 form-group">
+                    <input id="state" name="state" type="text"  class="form-control" placeholder="State">
+                </div>
+                <div class="col-md-4 form-group">
+                    <input id="country" name="country" type="text"  class="form-control" placeholder="Country">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12 form-group">
+                    <label class="mt-2 heading_font font_sub_heading_color">Company</label>
+                    <input id="companyName" name="companyName" type="text" class="form-control" placeholder="Company Name">
+                </div>
+            </div>
+            <div class="row mt-4" >
+                <div class="col d-flex justify-content-center">
+                    <button type="submit" name="submit" class="btn btn-primary base_button px-4 py-2 mb-5">Save</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{{end}}
+
+{{define "js"}}
+    <script src="/static/summernote-0.9.0/summernote-bs5.js"></script>
+    <script>
+        $('#descriptionOfJob').summernote({
+            height: 200
+        });
+    </script>
+{{end}}
+
+</body>

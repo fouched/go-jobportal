@@ -135,9 +135,8 @@ func (m *DBModel) AddUser(u User, hash string) error {
 		return err
 	}
 
-	// Mysql / mariadb does not support "returning id"
-	// Use last_insert_id - The ID that was generated is maintained
-	// in the server on a per-connection basis.
+	//Mysql / mariadb does not support "returning id" Use last_insert_id.
+	//The ID that was generated is maintained on the server on a per-connection basis.
 	query := "select LAST_INSERT_ID()"
 	row := m.DB.QueryRowContext(ctx, query)
 	err = row.Scan(&u.ID)

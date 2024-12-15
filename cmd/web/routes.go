@@ -23,6 +23,8 @@ func (app *application) routes() http.Handler {
 		mux.Get("/dashboard", app.Dashboard)
 		mux.Get("/recruiter-profile", app.RecruiterProfile)
 		mux.Post("/recruiter-profile/add", app.RecruiterProfileUpdate)
+		mux.Get("/dashboard/add", app.JobPostNew)
+		mux.Post("/dashboard/add-save", app.JobPostSave)
 	})
 
 	fileServer := http.FileServer(http.Dir("./static/"))
