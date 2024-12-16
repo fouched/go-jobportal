@@ -4,6 +4,7 @@
 {{end}}
 <body>
 {{define "content"}}
+{{$auth := index .AuthLevel}}
 <header class="navbar navbar-expand-lg navbar-dark">
     <label class="mt-2 ms-5 font-weight-bold h5">
         <a href="/admin/dashboard">hotdevjobs</a>
@@ -23,7 +24,7 @@
 
     <div class="collapse navbar-collapse" id="navbarToggler">
         <ul class="navbar-nav m-auto mt-2 mt-lg-0">
-            {{if eq .AuthLevel 1}}<!--recruiter-->
+            {{if eq $auth 1}}<!--recruiter-->
             <li class="nav-item ">
                 <a class="nav-link" href="/admin/dashboard/add"><i class="fa-solid fa-file-circle-plus"></i>Post New Job</a>
             </li>
@@ -35,7 +36,7 @@
             </li>
             {{end}}
 
-            {{if eq .AuthLevel 2}}<!--jobseeker-->
+            {{if eq $auth 2}}<!--jobseeker-->
             <li class="nav-item active">
                 <a class="nav-link" href="/admin/dashboard"><i class="fas fa-search"></i>Search for Jobs</a>
             </li>
@@ -69,70 +70,59 @@
 </header>
 
 <section class="section">
-    <div class="sidenav px-5">
-    </div>
-    <article>
 
-        {{if eq .AuthLevel 1}}<!--recruiter-->
+    <div class="sidenav px-5"></div>
+
+    <article>
+        {{if eq $auth 1}}<!--recruiter-->
         <div class="box">
             <h1 class="primary-title">Recruiter Dashboard</h1>
         </div>
         {{end}}
-        {{if eq .AuthLevel 3}}<!--hide for now - stupid logic applied in Spring template... -->
+
         <div class="box mt-3">
-            <label class="large-label px-3 mb-3" sec:authorize="hasAuthority('Job Seeker')">Search Results</label>
-            <th:block th:each="jobPost:${jobPost}">
-                <a
-                        th:href="@{/job-details-apply/{id}(id=${jobPost.jobPostId})}"
-                        style="text-decoration: none; color: black"
-                >
-                    <div
-                            onclick="window.location=/job-details-apply/{id}(id=${jobPost.jobPostId})"
-                            class="job-row"
-                    >
+            {{if eq $auth 2}}<!--jobseeker-->
+            <label class="large-label px-3 mb-3">Search Results</label>
+            {{end}}
+
+            {{ range .Data.JobPosts}}
+                <a href="/admin/job-details-apply/{{.ID}}" style="text-decoration: none; color: black">
+                    <div onclick="window.location=/job-details-apply/{{.ID}}" class="job-row">
                         <div class="row">
                             <div class="col-md-4">
                                 <label class="job-title text-left">
-                                    [[${jobPost.jobTitle}]]
-                                    <span
-                                            class="title-span"
-                                            sec:authorize="hasAuthority('Recruiter')"
-                                            th:text="'('+ @{${jobPost.totalCandidates}}+' Candidates Applied)'"
-                                    >(xx candidates applied)</span
-                                    >
-                                    <span
-                                            class="title-span"
-                                            sec:authorize="hasAuthority('Job Seeker')"
-                                            th:if="${jobPost.isActive == true}"
-                                    >(Applied)</span
-                                    >
-                                    <span
-                                            class="title-span"
-                                            sec:authorize="hasAuthority('Job Seeker')"
-                                            th:if="${jobPost.isSaved == true}"
-                                    >(Saved)</span
-                                    >
+                                    {{.JobTitle}}
+
+                                    {{if eq $auth 1}}<!--recruiter-->
+                                    <span class="title-span">
+                                        ({{.TotalCandidates}} Candidates Applied)
+                                    </span>
+                                    {{end}}
+
+                                    {{if eq $auth 2}}<!--jobseeker-->
+                                        {{if .IsActive}}
+                                        <span class="title-span">(Applied)</span>
+                                        {{end}}
+                                        {{if .IsSaved}}
+                                        <span class="title-span">(Saved)</span>
+                                        {{end}}
+                                    {{end}}
                                 </label>
                             </div>
                             <div class="col-md-4 text-center">
-                                <label
-                                        th:text="${jobPost.jobLocationId.city+', '+ jobPost.jobLocationId.state}"
-                                >
-                                    City State</label
-                                >
+                                <label>{{.Location.City}}, {{.Location.State}}</label>
                             </div>
                             <div class="col-md-4 text-right">
-                                <label th:text="@{${jobPost.jobCompanyId.name}}"
-                                >Recruiter Company Name</label
-                                >
+                                <label>{{.Company.Name}}</label>
                             </div>
                         </div>
                     </div>
                 </a>
-            </th:block>
+            {{end}}
         </div>
-        {{end}}
+
     </article>
+
 </section>
 {{end}}
 

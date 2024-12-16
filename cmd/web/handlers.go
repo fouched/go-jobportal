@@ -161,7 +161,8 @@ func (app *application) Logout(w http.ResponseWriter, r *http.Request) {
 func (app *application) Dashboard(w http.ResponseWriter, r *http.Request) {
 	// we will only hit this route if authenticated, load the appropriate profile
 	data := make(map[string]interface{})
-	rp, err := app.DB.GetRecruiterProfile(app.Session.GetInt(r.Context(), "userID"))
+	id := app.Session.GetInt(r.Context(), "userID")
+	rp, err := app.DB.GetRecruiterProfile(id)
 	if err != nil {
 		app.errorLog.Println(err)
 	}
@@ -172,6 +173,12 @@ func (app *application) Dashboard(w http.ResponseWriter, r *http.Request) {
 	if rp.ProfilePhoto != "" {
 		data["PhotosImagePath"] = "/uploads/" + rp.ProfilePhoto
 	}
+
+	jp, err := app.DB.GetRecruiterJobPosts(id)
+	if err != nil {
+		app.errorLog.Println(err)
+	}
+	data["JobPosts"] = jp
 
 	if err := app.renderTemplate(w, r, "dashboard", &templateData{
 		Data: data,
@@ -270,12 +277,12 @@ func (app *application) JobPostSave(w http.ResponseWriter, r *http.Request) {
 		JobType:     r.Form.Get("jobType"),
 		Salary:      r.Form.Get(""),
 		Remote:      r.Form.Get("remote"),
-		Location: &models.JobLocation{
+		Location: models.JobLocation{
 			City:    r.Form.Get("city"),
 			State:   r.Form.Get("state"),
 			Country: r.Form.Get("country"),
 		},
-		Company: &models.JobCompany{
+		Company: models.JobCompany{
 			Name: r.Form.Get("companyName"),
 			Logo: "",
 		},
