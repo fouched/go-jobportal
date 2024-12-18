@@ -3,72 +3,11 @@
     Dashboard
 {{end}}
 <body>
+{{define "page-header"}}
+{{end}}
+
 {{define "content"}}
 {{$auth := index .AuthLevel}}
-<header class="navbar navbar-expand-lg navbar-dark">
-    <label class="mt-2 ms-5 font-weight-bold h5">
-        <a href="/admin/dashboard">hotdevjobs</a>
-        <span class="logo_com font-weight-bold h5" style="color: white">.com</span>
-    </label>
-    <button
-            class="navbar-toggler"
-            type="button"
-            data-toggle="collapse"
-            data-target="#navbarTogglerDemo02"
-            aria-controls="navbarTogglerDemo02"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-    >
-        <span class="navbar-toggler-icon"></span>
-    </button>
-
-    <div class="collapse navbar-collapse" id="navbarToggler">
-        <ul class="navbar-nav m-auto mt-2 mt-lg-0">
-            {{if eq $auth 1}}<!--recruiter-->
-            <li class="nav-item ">
-                <a class="nav-link" href="/admin/dashboard/add"><i class="fa-solid fa-file-circle-plus"></i>Post New Job</a>
-            </li>
-            <li class="nav-item active">
-                <a class="nav-link" href="/admin/dashboard"><i class="fa-solid fa-eye"></i>View Your Jobs</a>
-            </li>
-            <li class="nav-item ">
-                <a class="nav-link" href="/admin/recruiter-profile"><i class="fa-solid fa-pencil"></i>Edit Account</a>
-            </li>
-            {{end}}
-
-            {{if eq $auth 2}}<!--jobseeker-->
-            <li class="nav-item active">
-                <a class="nav-link" href="/admin/dashboard"><i class="fas fa-search"></i>Search for Jobs</a>
-            </li>
-            <li class="nav-item ">
-                <a class="nav-link" href="/admin/saved-jobs"><i class="fa-solid fa-eye"></i>View Saved Jobs</a>
-            </li>
-            <li class="nav-item ">
-                <a class="nav-link" href="/admin/job-seeker-profile"><i class="fa-solid fa-pencil"></i>Edit Profile</a>
-            </li>
-            {{end}}
-        </ul>
-
-        {{if .Data.PhotosImagePath}}
-        <img
-                class="rounded-circle me-3"
-                height="50px"
-                width="50x"
-                src="{{.Data.PhotosImagePath}}"
-                alt="profile photo"
-        />
-        {{end}}
-
-        {{if .Data.FullName}}
-            <label class="nav-item nav-link px-2 me-3">{{.Data.FullName}}</label>
-        {{else if .UserName}}
-            <label class="nav-item nav-link px-2 me-3">{{.UserName}}</label>
-        {{end}}
-
-        <button class="myBtn-light me-5" onclick="window.location.href='/logout'">Logout</button>
-    </div>
-</header>
-
 <section class="section">
 
     <div class="sidenav px-5"></div>
@@ -86,8 +25,8 @@
             {{end}}
 
             {{ range .Data.JobPosts}}
-                <a href="/admin/job-details-apply/{{.ID}}" style="text-decoration: none; color: black">
-                    <div onclick="window.location=/job-details-apply/{{.ID}}" class="job-row">
+                <a href="/admin/job-details/{{.ID}}" style="text-decoration: none; color: black">
+                    <div onclick="window.location=/job-details/{{.ID}}" class="job-row">
                         <div class="row">
                             <div class="col-md-4">
                                 <label class="job-title text-left">

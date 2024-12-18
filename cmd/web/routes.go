@@ -20,11 +20,18 @@ func (app *application) routes() http.Handler {
 
 	mux.Route("/admin", func(mux chi.Router) {
 		mux.Use(app.Auth)
+
 		mux.Get("/dashboard", app.Dashboard)
+
+		mux.Get("/dashboard/add", app.JobPostNew)
+		mux.Post("/dashboard/add-save", app.JobPostAdd)
+
+		mux.Post("/dashboard/edit/{id}", app.JobPostEdit)
+
 		mux.Get("/recruiter-profile", app.RecruiterProfile)
 		mux.Post("/recruiter-profile/add", app.RecruiterProfileUpdate)
-		mux.Get("/dashboard/add", app.JobPostNew)
-		mux.Post("/dashboard/add-save", app.JobPostSave)
+
+		mux.Get("/job-details/{id}", app.JobDetails)
 	})
 
 	fileServer := http.FileServer(http.Dir("./static/"))

@@ -187,7 +187,7 @@ func (m *DBModel) GetRecruiterProfile(userID int) (RecruiterProfile, error) {
 	defer cancel()
 
 	query := `
-		select user_account_id, company, city, state, country, first_name, last_name, coalesce(profile_photo, '') as profile_photo 
+		select user_account_id, company, city, state, country, first_name, last_name, profile_photo 
 		from recruiter_profile 
 		where user_account_id = ?
 	`

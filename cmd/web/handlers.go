@@ -6,6 +6,7 @@ import (
 	"github.com/fouched/go-jobportal/internal/models"
 	"github.com/fouched/go-jobportal/internal/validator"
 	"github.com/fouched/toolkit/v2"
+	"github.com/go-chi/chi/v5"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"os"
@@ -159,6 +160,9 @@ func (app *application) Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) Dashboard(w http.ResponseWriter, r *http.Request) {
+	intMap := make(map[string]int)
+	intMap["ShowNav"] = 1
+
 	// we will only hit this route if authenticated, load the appropriate profile
 	data := make(map[string]interface{})
 	id := app.Session.GetInt(r.Context(), "userID")
@@ -181,7 +185,8 @@ func (app *application) Dashboard(w http.ResponseWriter, r *http.Request) {
 	data["JobPosts"] = jp
 
 	if err := app.renderTemplate(w, r, "dashboard", &templateData{
-		Data: data,
+		IntMap: intMap,
+		Data:   data,
 	}); err != nil {
 		app.errorLog.Println(err)
 	}
@@ -258,24 +263,52 @@ func (app *application) RecruiterProfileUpdate(w http.ResponseWriter, r *http.Re
 }
 
 func (app *application) JobPostNew(w http.ResponseWriter, r *http.Request) {
-	if err := app.renderTemplate(w, r, "job", &templateData{}); err != nil {
+
+	data := make(map[string]interface{})
+	data["JobDetails"] = models.JobPost{ID: 0}
+
+	if err := app.renderTemplate(w, r, "job", &templateData{
+		Data: data,
+	}); err != nil {
 		app.errorLog.Println(err)
 	}
 }
 
-func (app *application) JobPostSave(w http.ResponseWriter, r *http.Request) {
+func (app *application) JobPostEdit(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	jobID, _ := strconv.Atoi(id)
+
+	jd, err := app.DB.GetJob(jobID)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["JobDetails"] = jd
+
+	if err := app.renderTemplate(w, r, "job", &templateData{
+		Data: data,
+	}); err != nil {
+		app.errorLog.Println(err)
+	}
+}
+
+func (app *application) JobPostAdd(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		app.errorLog.Println(err)
 		return
 	}
 
+	id, _ := strconv.Atoi(r.Form.Get("jobPostId"))
 	jp := models.JobPost{
 		PostedById:  app.Session.GetInt(r.Context(), "userID"),
+		ID:          id,
 		Description: r.Form.Get("descriptionOfJob"),
 		JobTitle:    r.Form.Get("jobTitle"),
 		JobType:     r.Form.Get("jobType"),
-		Salary:      r.Form.Get(""),
+		Salary:      r.Form.Get("salary"),
 		Remote:      r.Form.Get("remote"),
 		Location: models.JobLocation{
 			City:    r.Form.Get("city"),
@@ -288,11 +321,35 @@ func (app *application) JobPostSave(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	err = app.DB.AddJobPost(jp)
+	err = app.DB.SaveJobPost(jp)
 	if err != nil {
 		app.errorLog.Println(err)
 		return
 	}
 
 	http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
+}
+
+func (app *application) JobDetails(w http.ResponseWriter, r *http.Request) {
+	intMap := make(map[string]int)
+	intMap["ShowNav"] = 1
+
+	id := chi.URLParam(r, "id")
+	jobID, _ := strconv.Atoi(id)
+
+	jd, err := app.DB.GetJob(jobID)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["JobDetails"] = jd
+
+	if err := app.renderTemplate(w, r, "job-details", &templateData{
+		IntMap: intMap,
+		Data:   data,
+	}); err != nil {
+		app.errorLog.Println(err)
+	}
 }

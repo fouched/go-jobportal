@@ -32,7 +32,13 @@ type templateData struct {
 //go:embed templates
 var templateFS embed.FS
 
-var functions = template.FuncMap{}
+var functions = template.FuncMap{
+	"unescapeHTML": unescapeHTML,
+}
+
+func unescapeHTML(s string) template.HTML {
+	return template.HTML(s)
+}
 
 func (app *application) renderTemplate(w http.ResponseWriter, r *http.Request, page string, td *templateData, partials ...string) error {
 	var t *template.Template

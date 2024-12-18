@@ -34,16 +34,32 @@ type JobPost struct {
 	IsSaved         bool
 }
 
-func (m *DBModel) AddJobPost(jp JobPost) error {
+func (m *DBModel) SaveJobPost(jp JobPost) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	//Add JobLocation
-	stmt := "insert into job_location (city, state, country) values (?, ?, ?)"
+	//delete the job post, let cascading take care of it and add it back in
+	if jp.ID != 0 {
+		stmt := "delete from job_post_activity where job_post_id = ?"
+		_, err := m.DB.ExecContext(ctx, stmt, jp.ID)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Add the JobPost
+	stmt := `insert into job_post_activity (posted_by_id, description_of_job, job_title, job_type, posted_date, 
+                               remote, salary)
+			values (?, ?, ?, ?, ?, ?, ?)
+	`
 	_, err := m.DB.ExecContext(ctx, stmt,
-		jp.Location.City,
-		jp.Location.State,
-		jp.Location.Country,
+		jp.PostedById,
+		jp.Description,
+		jp.JobTitle,
+		jp.JobType,
+		time.Now(),
+		jp.Remote,
+		jp.Salary,
 	)
 	if err != nil {
 		return err
@@ -53,43 +69,29 @@ func (m *DBModel) AddJobPost(jp JobPost) error {
 	//The ID that was generated is maintained on the server on a per-connection basis.
 	query := "select LAST_INSERT_ID()"
 	row := m.DB.QueryRowContext(ctx, query)
-	err = row.Scan(&jp.Location.ID)
+	err = row.Scan(&jp.ID)
 	if err != nil {
 		return err
 	}
 
-	//Add JobCompany
-	stmt = "insert into job_company (name, logo) values (?, ?)"
+	//Add JobLocation
+	stmt = "insert into job_location (job_post_activity_id, city, state, country) values (?, ?, ?, ?)"
 	_, err = m.DB.ExecContext(ctx, stmt,
-		jp.Company.Name,
-		jp.Company.Logo,
+		jp.ID,
+		jp.Location.City,
+		jp.Location.State,
+		jp.Location.Country,
 	)
 	if err != nil {
 		return err
 	}
 
-	query = "select LAST_INSERT_ID()"
-	row = m.DB.QueryRowContext(ctx, query)
-	err = row.Scan(&jp.Company.ID)
-	if err != nil {
-		return err
-	}
-
-	// Add the JobPost
-	stmt = `insert into job_post_activity (posted_by_id, description_of_job, job_title, job_type, posted_date, 
-                               remote, salary, job_company_id, job_location_id)
-			values (?, ?, ?, ?, ?, ?, ?, ?, ?)
-	`
+	//Add JobCompany
+	stmt = "insert into job_company (job_post_activity_id, name, logo) values (?, ?, ?)"
 	_, err = m.DB.ExecContext(ctx, stmt,
-		jp.PostedById,
-		jp.Description,
-		jp.JobTitle,
-		jp.JobType,
-		time.Now(),
-		jp.Remote,
-		jp.Salary,
-		jp.Company.ID,
-		jp.Location.ID,
+		jp.ID,
+		jp.Company.Name,
+		jp.Company.Logo,
 	)
 	if err != nil {
 		return err
@@ -106,9 +108,9 @@ func (m *DBModel) GetRecruiterJobPosts(id int) ([]*JobPost, error) {
 		select COUNT(s.user_id) as totalCandidates, j.job_post_id, j.job_title, l.id as locationId,
 			l.city, l.state, l.country, c.id as companyId, c.name
 		from job_post_activity j
-		inner join job_location l on j.job_location_id = l.id
-		inner join job_company c  on j.job_company_id = c.id
-		left join job_seeker_apply s on s.job = j.job_post_id
+			inner join job_location l on j.job_post_id = l.job_post_activity_id
+			inner join job_company c  on j.job_post_id = c.job_post_activity_id
+			left join job_seeker_apply s on s.job = j.job_post_id
 		where j.posted_by_id = ?
 		group by j.job_post_id
 	`
@@ -138,4 +140,45 @@ func (m *DBModel) GetRecruiterJobPosts(id int) ([]*JobPost, error) {
 	}
 
 	return jobPosts, nil
+}
+
+func (m *DBModel) GetJob(id int) (*JobPost, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	var jp JobPost
+	query := `
+		select j.job_post_id, j.job_title, j.posted_date, j.salary, j.job_type, j.remote, j.description_of_job,
+		       l.id as locationId, l.city, l.state, l.country, 
+		       c.id as companyId, c.name
+		from job_post_activity j
+			inner join job_location l on j.job_post_id = l.job_post_activity_id
+			inner join job_company c  on j.job_post_id = c.job_post_activity_id
+			left join job_seeker_apply s on s.job = j.job_post_id
+		where j.job_post_id = ?
+	`
+
+	row := m.DB.QueryRowContext(ctx, query, id)
+	err := row.Scan(
+		&jp.ID,
+		&jp.JobTitle,
+		&jp.PostedDate,
+		&jp.Salary,
+		&jp.JobType,
+		&jp.Remote,
+		&jp.Description,
+		&jp.Location.ID,
+		&jp.Location.City,
+		&jp.Location.State,
+		&jp.Location.Country,
+		&jp.Company.ID,
+		&jp.Company.Name,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	//TODO: applicants for the JobPost
+
+	return &jp, nil
 }

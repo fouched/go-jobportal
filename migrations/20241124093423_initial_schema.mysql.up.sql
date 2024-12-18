@@ -29,30 +29,6 @@ CREATE TABLE users
   DEFAULT CHARSET = utf8
   COLLATE = utf8_general_ci;
 
-
-CREATE TABLE job_company
-(
-    id   int NOT NULL AUTO_INCREMENT,
-    logo varchar(255) DEFAULT NULL,
-    name varchar(255) DEFAULT NULL,
-    PRIMARY KEY (id)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8
-  COLLATE = utf8_general_ci;
-
-
-CREATE TABLE job_location
-(
-    id      int NOT NULL AUTO_INCREMENT,
-    city    varchar(255) DEFAULT NULL,
-    country varchar(255) DEFAULT NULL,
-    state   varchar(255) DEFAULT NULL,
-    PRIMARY KEY (id)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8
-  COLLATE = utf8_general_ci;
-
-
 CREATE TABLE job_seeker_profile
 (
     user_account_id    int NOT NULL,
@@ -75,13 +51,13 @@ CREATE TABLE job_seeker_profile
 CREATE TABLE recruiter_profile
 (
     user_account_id int NOT NULL,
-    city            varchar(255) DEFAULT NULL,
-    company         varchar(255) DEFAULT NULL,
-    country         varchar(255) DEFAULT NULL,
-    first_name      varchar(255) DEFAULT NULL,
-    last_name       varchar(255) DEFAULT NULL,
-    profile_photo   varchar(64)  DEFAULT NULL,
-    state           varchar(255) DEFAULT NULL,
+    city            varchar(255) DEFAULT '',
+    company         varchar(255) DEFAULT '',
+    country         varchar(255) DEFAULT '',
+    first_name      varchar(255) DEFAULT '',
+    last_name       varchar(255) DEFAULT '',
+    profile_photo   varchar(64)  DEFAULT '',
+    state           varchar(255) DEFAULT '',
     PRIMARY KEY (user_account_id),
     CONSTRAINT FK42q4eb7jw1bvw3oy83vc05ft6 FOREIGN KEY (user_account_id) REFERENCES users (user_id) ON DELETE CASCADE
 ) ENGINE = InnoDB
@@ -98,16 +74,36 @@ CREATE TABLE job_post_activity
     posted_date        datetime(6)    DEFAULT NULL,
     remote             varchar(255)   DEFAULT NULL,
     salary             varchar(255)   DEFAULT NULL,
-    job_company_id     int            DEFAULT NULL,
-    job_location_id    int            DEFAULT NULL,
     posted_by_id       int            DEFAULT NULL,
     PRIMARY KEY (job_post_id),
-    KEY FKpjpv059hollr4tk92ms09s6is (job_company_id),
-    KEY FK44003mnvj29aiijhsc6ftsgxe (job_location_id),
     KEY FK62yqqbypsq2ik34ngtlw4m9k3 (posted_by_id),
-    CONSTRAINT FK44003mnvj29aiijhsc6ftsgxe FOREIGN KEY (job_location_id) REFERENCES job_location (id) ON DELETE CASCADE,
-    CONSTRAINT FKpjpv059hollr4tk92ms09s6is FOREIGN KEY (job_company_id) REFERENCES job_company (id) ON DELETE CASCADE,
     CONSTRAINT FK62yqqbypsq2ik34ngtlw4m9k3 FOREIGN KEY (posted_by_id) REFERENCES users (user_id)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  COLLATE = utf8_general_ci;
+
+CREATE TABLE job_company
+(
+    id   int NOT NULL AUTO_INCREMENT,
+    job_post_activity_id int NOT NULL,
+    logo varchar(255) DEFAULT NULL,
+    name varchar(255) DEFAULT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT job_company_activity_id_fk FOREIGN KEY (job_post_activity_id) REFERENCES job_post_activity (job_post_id) ON DELETE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  COLLATE = utf8_general_ci;
+
+
+CREATE TABLE job_location
+(
+    id      int NOT NULL AUTO_INCREMENT,
+    job_post_activity_id int NOT NULL,
+    city    varchar(255) DEFAULT NULL,
+    country varchar(255) DEFAULT NULL,
+    state   varchar(255) DEFAULT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT job_location_activity_id_fk FOREIGN KEY (job_post_activity_id) REFERENCES job_post_activity (job_post_id) ON DELETE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8
   COLLATE = utf8_general_ci;
