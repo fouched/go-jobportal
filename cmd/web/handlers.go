@@ -262,12 +262,12 @@ func (app *application) RecruiterProfileUpdate(w http.ResponseWriter, r *http.Re
 	http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
 }
 
-func (app *application) JobPostNew(w http.ResponseWriter, r *http.Request) {
+func (app *application) JobPostAdd(w http.ResponseWriter, r *http.Request) {
 
 	data := make(map[string]interface{})
 	data["JobDetails"] = models.JobPost{ID: 0}
 
-	if err := app.renderTemplate(w, r, "job", &templateData{
+	if err := app.renderTemplate(w, r, "job-post", &templateData{
 		Data: data,
 	}); err != nil {
 		app.errorLog.Println(err)
@@ -287,14 +287,14 @@ func (app *application) JobPostEdit(w http.ResponseWriter, r *http.Request) {
 	data := make(map[string]interface{})
 	data["JobDetails"] = jd
 
-	if err := app.renderTemplate(w, r, "job", &templateData{
+	if err := app.renderTemplate(w, r, "job-post", &templateData{
 		Data: data,
 	}); err != nil {
 		app.errorLog.Println(err)
 	}
 }
 
-func (app *application) JobPostAdd(w http.ResponseWriter, r *http.Request) {
+func (app *application) JobPostSave(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		app.errorLog.Println(err)
