@@ -353,3 +353,9 @@ func (app *application) JobDetails(w http.ResponseWriter, r *http.Request) {
 		app.errorLog.Println(err)
 	}
 }
+
+func (app *application) JobSeekerProfile(w http.ResponseWriter, r *http.Request) {
+	if err := app.renderTemplate(w, r, "job-seeker-profile", &templateData{}); err != nil {
+		app.errorLog.Println(err)
+	}
+}

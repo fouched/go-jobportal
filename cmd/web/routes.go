@@ -30,6 +30,8 @@ func (app *application) routes() http.Handler {
 		mux.Get("/recruiter-profile", app.RecruiterProfile)
 		mux.Post("/recruiter-profile/add", app.RecruiterProfileUpdate)
 
+		mux.Get("/job-seeker-profile", app.JobSeekerProfile)
+
 		mux.Get("/job-details/{id}", app.JobDetails)
 	})
 
