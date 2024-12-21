@@ -45,7 +45,7 @@ func (app *application) ShowRegister(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (app *application) RegisterNew(w http.ResponseWriter, r *http.Request) {
+func (app *application) RegisterSave(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		app.errorLog.Println(err)
