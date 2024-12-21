@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 )
 
 // Home displays the home page
@@ -165,20 +166,34 @@ func (app *application) Dashboard(w http.ResponseWriter, r *http.Request) {
 
 	// we will only hit this route if authenticated, load the appropriate profile
 	data := make(map[string]interface{})
-	id := app.Session.GetInt(r.Context(), "userID")
-	rp, err := app.DB.GetRecruiterProfile(id)
-	if err != nil {
-		app.errorLog.Println(err)
-	}
-	if rp.FirstName != "" && rp.LastName != "" {
-		data["FullName"] = rp.FirstName + " " + rp.LastName
+	userId := app.Session.GetInt(r.Context(), "userID")
+	userTypeID := app.Session.GetInt(r.Context(), "userTypeID")
+
+	if userTypeID == 1 {
+		p, err := app.DB.GetRecruiterProfile(userId)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+		if p.FirstName != "" && p.LastName != "" {
+			data["FullName"] = p.FirstName + " " + p.LastName
+		}
+		if p.ProfilePhoto != "" {
+			data["ProfilePhoto"] = p.ProfilePhoto
+		}
+	} else {
+		p, err := app.DB.GetJobSeekerProfile(userId)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+		if p.FirstName != "" && p.LastName != "" {
+			data["FullName"] = p.FirstName + " " + p.LastName
+		}
+		if p.ProfilePhoto != "" {
+			data["ProfilePhoto"] = p.ProfilePhoto
+		}
 	}
 
-	if rp.ProfilePhoto != "" {
-		data["PhotosImagePath"] = "/uploads/" + rp.ProfilePhoto
-	}
-
-	jp, err := app.DB.GetRecruiterJobPosts(id)
+	jp, err := app.DB.GetRecruiterJobPosts(userId)
 	if err != nil {
 		app.errorLog.Println(err)
 	}
@@ -213,14 +228,18 @@ func (app *application) RecruiterProfile(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func (app *application) RecruiterProfileUpdate(w http.ResponseWriter, r *http.Request) {
+func (app *application) RecruiterProfileSave(w http.ResponseWriter, r *http.Request) {
+
+	userId := app.Session.GetInt(r.Context(), "userID")
+	uploadDir := "./uploads/recruiter/" + strconv.Itoa(userId) + "/"
 
 	t := toolkit.Tools{
 		MaxFileSize:      5 * 1024 * 1024 * 1024,
 		AllowedFileTypes: []string{"image/jpeg", "image/png", "image/gif"},
 	}
 
-	files, err := t.UploadFiles(r, "./uploads")
+	// add current directory for the upload
+	files, err := t.UploadFiles(r, uploadDir)
 	if err != nil {
 		app.errorLog.Println(err)
 		return
@@ -228,7 +247,7 @@ func (app *application) RecruiterProfileUpdate(w http.ResponseWriter, r *http.Re
 
 	// UploadFiles also parsed the form, so it is available to us
 	rp := models.RecruiterProfile{
-		UserAccountID: app.Session.GetInt(r.Context(), "userID"),
+		UserAccountID: userId,
 		FirstName:     r.Form.Get("firstName"),
 		LastName:      r.Form.Get("lastName"),
 		City:          r.Form.Get("city"),
@@ -246,12 +265,12 @@ func (app *application) RecruiterProfileUpdate(w http.ResponseWriter, r *http.Re
 	// only update profile photo data if the user specified a file
 	if len(files) > 0 {
 		// delete previous profile photo
-		rp, _ := app.DB.GetRecruiterProfile(app.Session.GetInt(r.Context(), "userID"))
+		rp, _ := app.DB.GetRecruiterProfile(userId)
 		if rp.ProfilePhoto != "" {
-			_ = os.Remove("./uploads/" + rp.ProfilePhoto)
+			_ = os.Remove("." + rp.ProfilePhoto)
 		}
 
-		rp.ProfilePhoto = files[0].NewFileName
+		rp.ProfilePhoto = strings.TrimPrefix(uploadDir, ".") + files[0].NewFileName
 		err = app.DB.UpdateRecruiterProfilePhoto(rp)
 		if err != nil {
 			app.errorLog.Println(err)
@@ -262,7 +281,7 @@ func (app *application) RecruiterProfileUpdate(w http.ResponseWriter, r *http.Re
 	http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
 }
 
-func (app *application) JobPostAdd(w http.ResponseWriter, r *http.Request) {
+func (app *application) JobPost(w http.ResponseWriter, r *http.Request) {
 
 	data := make(map[string]interface{})
 	data["JobDetails"] = models.JobPost{ID: 0}
@@ -355,7 +374,104 @@ func (app *application) JobDetails(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) JobSeekerProfile(w http.ResponseWriter, r *http.Request) {
-	if err := app.renderTemplate(w, r, "job-seeker-profile", &templateData{}); err != nil {
+	data := make(map[string]interface{})
+	sp, err := app.DB.GetJobSeekerProfile(app.Session.GetInt(r.Context(), "userID"))
+	if err != nil {
 		app.errorLog.Println(err)
 	}
+
+	data["FirstName"] = sp.FirstName
+	data["LastName"] = sp.LastName
+	data["City"] = sp.City
+	data["State"] = sp.State
+	data["Country"] = sp.Country
+	data["EmploymentType"] = sp.EmploymentType
+	data["WorkAuthorization"] = sp.WorkAuthorization
+	data["Skills"] = sp.Skills
+
+	if err := app.renderTemplate(w, r, "job-seeker-profile", &templateData{
+		Data: data,
+	}); err != nil {
+		app.errorLog.Println(err)
+	}
+}
+
+func (app *application) JobSeekerProfileSave(w http.ResponseWriter, r *http.Request) {
+
+	userId := app.Session.GetInt(r.Context(), "userID")
+	uploadDir := "./uploads/jobseeker/" + strconv.Itoa(userId) + "/"
+
+	t := toolkit.Tools{
+		MaxFileSize:      5 * 1024 * 1024 * 1024,
+		AllowedFileTypes: []string{"image/jpeg", "image/png", "image/gif", "application/pdf"},
+	}
+
+	// add current directory for the upload
+	files, err := t.UploadFiles(r, uploadDir)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	// UploadFiles also parsed the form, so it is available to us
+	// parse the skills
+	var skills []models.Skill
+	skillNames := r.Form["skillName"]
+	skillExperienceLevel := r.Form["skillExperienceLevel"]
+	skillYearsOfExperience := r.Form["skillYearsOfExperience"]
+	for i, skillName := range skillNames {
+		skill := models.Skill{
+			UserAccountID:     userId,
+			Name:              skillName,
+			ExperienceLevel:   skillExperienceLevel[i],
+			YearsOfExperience: skillYearsOfExperience[i],
+		}
+		skills = append(skills, skill)
+	}
+
+	sp := models.JobSeekerProfile{
+		UserAccountID:     userId,
+		FirstName:         r.Form.Get("firstName"),
+		LastName:          r.Form.Get("lastName"),
+		City:              r.Form.Get("city"),
+		State:             r.Form.Get("state"),
+		Country:           r.Form.Get("country"),
+		WorkAuthorization: r.Form.Get("workAuthorization"),
+		EmploymentType:    r.Form.Get("employmentType"),
+		Skills:            skills,
+	}
+
+	err = app.DB.UpdateJobSeekerProfile(sp)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	// only update profile photo data if the user specified a file
+	if len(files) > 0 {
+		// delete previous profile photo
+		sp, _ := app.DB.GetJobSeekerProfile(userId)
+		if sp.ProfilePhoto != "" {
+			_ = os.Remove("." + sp.ProfilePhoto)
+		}
+		if sp.Resume != "" {
+			_ = os.Remove("." + sp.Resume)
+		}
+
+		if files[0].Key == "profileImage" {
+			sp.ProfilePhoto = strings.TrimPrefix(uploadDir, ".") + files[0].NewFileName
+			sp.Resume = strings.TrimPrefix(uploadDir, ".") + files[1].NewFileName
+		} else {
+			sp.ProfilePhoto = strings.TrimPrefix(uploadDir, ".") + files[1].NewFileName
+			sp.Resume = strings.TrimPrefix(uploadDir, ".") + files[0].NewFileName
+		}
+
+		err = app.DB.UpdateJobSeekerUploads(sp)
+		if err != nil {
+			app.errorLog.Println(err)
+			return
+		}
+	}
+
+	http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
 }

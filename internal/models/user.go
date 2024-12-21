@@ -33,7 +33,7 @@ type JobSeekerProfile struct {
 	EmploymentType    string
 	Resume            string
 	ProfilePhoto      string
-	Skills            *[]Skills
+	Skills            []Skill
 }
 
 type RecruiterProfile struct {
@@ -47,12 +47,12 @@ type RecruiterProfile struct {
 	ProfilePhoto  string
 }
 
-type Skills struct {
+type Skill struct {
 	ID                int
+	UserAccountID     int
 	Name              string
 	ExperienceLevel   string
 	YearsOfExperience string
-	JobSeekerProfile  JobSeekerProfile
 }
 
 func (m *DBModel) GetAllUserTypes() ([]*UserType, error) {
@@ -211,6 +211,35 @@ func (m *DBModel) GetRecruiterProfile(userID int) (RecruiterProfile, error) {
 	return rp, nil
 }
 
+func (m *DBModel) UpdateRecruiterProfile(p RecruiterProfile) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	// update profile info
+	stmt := `update recruiter_profile set company = ?, city = ?, state = ?, country = ?, first_name = ?, last_name = ?
+		where user_account_id = ?`
+
+	_, err := m.DB.ExecContext(ctx, stmt, p.Company, p.City, p.State, p.Country, p.FirstName, p.LastName, p.UserAccountID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *DBModel) UpdateRecruiterProfilePhoto(p RecruiterProfile) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := "update recruiter_profile set profile_photo = ? where user_account_id = ?"
+	_, err := m.DB.ExecContext(ctx, stmt, p.ProfilePhoto, p.UserAccountID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m *DBModel) GetJobSeekerProfile(userID int) (JobSeekerProfile, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -239,31 +268,70 @@ func (m *DBModel) GetJobSeekerProfile(userID int) (JobSeekerProfile, error) {
 		return jp, err
 	}
 
+	query = `select name, experience_level, years_of_experience 
+		from skills 
+		where job_seeker_profile = ?`
+	rows, err := m.DB.QueryContext(ctx, query, userID)
+	if err != nil {
+		return jp, err
+	}
+	defer rows.Close()
+
+	var skills []Skill
+	for rows.Next() {
+		var s Skill
+		err := rows.Scan(
+			&s.Name,
+			&s.ExperienceLevel,
+			&s.YearsOfExperience,
+		)
+		if err != nil {
+			return jp, err
+		}
+		skills = append(skills, s)
+	}
+	jp.Skills = skills
+
 	return jp, nil
 }
 
-func (m *DBModel) UpdateRecruiterProfile(p RecruiterProfile) error {
+func (m *DBModel) UpdateJobSeekerProfile(sp JobSeekerProfile) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
 	// update profile info
-	stmt := `update recruiter_profile set company = ?, city = ?, state = ?, country = ?, first_name = ?, last_name = ?
+	stmt := `update job_seeker_profile set city = ?, state = ?, country = ?, first_name = ?, last_name = ?, 
+                              employment_type = ?, work_authorization = ?
 		where user_account_id = ?`
 
-	_, err := m.DB.ExecContext(ctx, stmt, p.Company, p.City, p.State, p.Country, p.FirstName, p.LastName, p.UserAccountID)
+	_, err := m.DB.ExecContext(ctx, stmt, sp.City, sp.State, sp.Country, sp.FirstName, sp.LastName,
+		sp.EmploymentType, sp.WorkAuthorization, sp.UserAccountID)
 	if err != nil {
 		return err
+	}
+
+	// refresh the skills
+	stmt = "delete from skills where job_seeker_profile = ?"
+	_, err = m.DB.ExecContext(ctx, stmt, sp.UserAccountID)
+	if err != nil {
+		return err
+	}
+
+	for _, skill := range sp.Skills {
+		stmt = `insert into skills (name, experience_level, years_of_experience, job_seeker_profile) 
+			values (?,?,?,?)`
+		_, err = m.DB.ExecContext(ctx, stmt, skill.Name, skill.ExperienceLevel, skill.YearsOfExperience, skill.UserAccountID)
 	}
 
 	return nil
 }
 
-func (m *DBModel) UpdateRecruiterProfilePhoto(p RecruiterProfile) error {
+func (m *DBModel) UpdateJobSeekerUploads(sp JobSeekerProfile) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := "update recruiter_profile set profile_photo = ? where user_account_id = ?"
-	_, err := m.DB.ExecContext(ctx, stmt, p.ProfilePhoto, p.UserAccountID)
+	stmt := "update job_seeker_profile set profile_photo = ?, resume = ? where user_account_id = ?"
+	_, err := m.DB.ExecContext(ctx, stmt, sp.ProfilePhoto, sp.Resume, sp.UserAccountID)
 	if err != nil {
 		return err
 	}

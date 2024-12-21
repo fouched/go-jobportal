@@ -32,15 +32,15 @@ CREATE TABLE users
 CREATE TABLE job_seeker_profile
 (
     user_account_id    int NOT NULL,
-    city               varchar(255) DEFAULT NULL,
-    country            varchar(255) DEFAULT NULL,
-    employment_type    varchar(255) DEFAULT NULL,
-    first_name         varchar(255) DEFAULT NULL,
-    last_name          varchar(255) DEFAULT NULL,
-    profile_photo      varchar(255) DEFAULT NULL,
-    resume             varchar(255) DEFAULT NULL,
-    state              varchar(255) DEFAULT NULL,
-    work_authorization varchar(255) DEFAULT NULL,
+    city               varchar(255) DEFAULT '',
+    country            varchar(255) DEFAULT '',
+    employment_type    varchar(255) DEFAULT '',
+    first_name         varchar(255) DEFAULT '',
+    last_name          varchar(255) DEFAULT '',
+    profile_photo      varchar(255) DEFAULT '',
+    resume             varchar(255) DEFAULT '',
+    state              varchar(255) DEFAULT '',
+    work_authorization varchar(255) DEFAULT '',
     PRIMARY KEY (user_account_id),
     CONSTRAINT FKohp1poe14xlw56yxbwu2tpdm7 FOREIGN KEY (user_account_id) REFERENCES users (user_id) ON DELETE CASCADE
 ) ENGINE = InnoDB

@@ -23,14 +23,15 @@ func (app *application) routes() http.Handler {
 
 		mux.Get("/dashboard", app.Dashboard)
 
-		mux.Get("/dashboard/add", app.JobPostAdd)
-		mux.Post("/dashboard/edit/{id}", app.JobPostEdit)
-		mux.Post("/dashboard/save", app.JobPostSave)
+		mux.Get("/job-post", app.JobPost)
+		mux.Post("/job-post/edit/{id}", app.JobPostEdit)
+		mux.Post("/job-post/save", app.JobPostSave)
 
 		mux.Get("/recruiter-profile", app.RecruiterProfile)
-		mux.Post("/recruiter-profile/add", app.RecruiterProfileUpdate)
+		mux.Post("/recruiter-profile/save", app.RecruiterProfileSave)
 
 		mux.Get("/job-seeker-profile", app.JobSeekerProfile)
+		mux.Post("/job-seeker-profile/save", app.JobSeekerProfileSave)
 
 		mux.Get("/job-details/{id}", app.JobDetails)
 	})

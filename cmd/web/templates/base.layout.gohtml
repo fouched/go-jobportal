@@ -42,7 +42,7 @@
             <ul class="navbar-nav m-auto mt-2 mt-lg-0">
                 {{if eq $auth 1}}<!--recruiter-->
                 <li class="nav-item ">
-                    <a class="nav-link" href="/admin/dashboard/add"><i class="fa-solid fa-file-circle-plus"></i>Post New Job</a>
+                    <a class="nav-link" href="/admin/job-post"><i class="fa-solid fa-file-circle-plus"></i>Post New Job</a>
                 </li>
                 <li class="nav-item active">
                     <a class="nav-link" href="/admin/dashboard"><i class="fa-solid fa-eye"></i>View Your Jobs</a>
@@ -65,12 +65,12 @@
                 {{end}}
             </ul>
 
-            {{if .Data.PhotosImagePath}}
+            {{if .Data.ProfilePhoto}}
                 <img
                         class="rounded-circle me-3"
                         height="50px"
                         width="50x"
-                        src="{{.Data.PhotosImagePath}}"
+                        src="{{.Data.ProfilePhoto}}"
                         alt="profile photo"
                 />
             {{end}}

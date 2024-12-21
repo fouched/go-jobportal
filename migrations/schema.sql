@@ -105,15 +105,15 @@ DROP TABLE IF EXISTS `job_seeker_profile`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `job_seeker_profile` (
   `user_account_id` int(11) NOT NULL,
-  `city` varchar(255) DEFAULT NULL,
-  `country` varchar(255) DEFAULT NULL,
-  `employment_type` varchar(255) DEFAULT NULL,
-  `first_name` varchar(255) DEFAULT NULL,
-  `last_name` varchar(255) DEFAULT NULL,
-  `profile_photo` varchar(255) DEFAULT NULL,
-  `resume` varchar(255) DEFAULT NULL,
-  `state` varchar(255) DEFAULT NULL,
-  `work_authorization` varchar(255) DEFAULT NULL,
+  `city` varchar(255) DEFAULT '',
+  `country` varchar(255) DEFAULT '',
+  `employment_type` varchar(255) DEFAULT '',
+  `first_name` varchar(255) DEFAULT '',
+  `last_name` varchar(255) DEFAULT '',
+  `profile_photo` varchar(255) DEFAULT '',
+  `resume` varchar(255) DEFAULT '',
+  `state` varchar(255) DEFAULT '',
+  `work_authorization` varchar(255) DEFAULT '',
   PRIMARY KEY (`user_account_id`),
   CONSTRAINT `FKohp1poe14xlw56yxbwu2tpdm7` FOREIGN KEY (`user_account_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
@@ -252,4 +252,4 @@ CREATE TABLE `users_type` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2024-12-18 20:21:35
+-- Dump completed on 2024-12-21 13:58:30
