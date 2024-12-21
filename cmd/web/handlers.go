@@ -235,7 +235,7 @@ func (app *application) RecruiterProfileSave(w http.ResponseWriter, r *http.Requ
 
 	t := toolkit.Tools{
 		MaxFileSize:      5 * 1024 * 1024 * 1024,
-		AllowedFileTypes: []string{"image/jpeg", "image/png", "image/gif"},
+		AllowedFileTypes: []string{"image/jpeg", "image/png", "image/gif", "image/bmp"},
 	}
 
 	// add current directory for the upload
@@ -402,8 +402,13 @@ func (app *application) JobSeekerProfileSave(w http.ResponseWriter, r *http.Requ
 	uploadDir := "./uploads/jobseeker/" + strconv.Itoa(userId) + "/"
 
 	t := toolkit.Tools{
-		MaxFileSize:      5 * 1024 * 1024 * 1024,
-		AllowedFileTypes: []string{"image/jpeg", "image/png", "image/gif", "application/pdf"},
+		MaxFileSize: 5 * 1024 * 1024 * 1024,
+		AllowedFileTypes: []string{"image/jpeg", "image/png", "image/gif", "image/bmp",
+			"application/pdf",
+			"application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+			"application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+			"application/vnd.ms-powerpoint", "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+			"application/vnd.oasis.opendocument.text", "application/vnd.oasis.opendocument.spreadsheet", "application/vnd.oasis.opendocument.presentation"},
 	}
 
 	// add current directory for the upload
