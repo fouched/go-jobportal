@@ -34,6 +34,20 @@ type JobPost struct {
 	IsSaved         bool
 }
 
+type JobSeekerApply struct {
+	ID               int
+	JobSeekerProfile JobSeekerProfile
+	JobPost          JobPost
+	ApplyDate        time.Time
+	CoverLetter      string
+}
+
+type JobSeekerSave struct {
+	ID               int
+	JobSeekerProfile JobSeekerProfile
+	JobPost          JobPost
+}
+
 func (m *DBModel) SaveJobPost(jp JobPost) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
