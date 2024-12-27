@@ -8,11 +8,154 @@
 
 {{define "content"}}
 {{$auth := index .AuthLevel}}
+
 <section class="section">
 
-    <div class="sidenav px-5"></div>
+    <div class="sidenav px-5">
+        {{if eq $auth 2}}
+        <div>
+            <label class="text-uppercase color-dull font-weight-bold">Filter Results</label>
+            <hr/>
+            <form id="myForm" action="/admin/dashboard" method="post">
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <label>Employment Type</label>
+                        <div class="form-check">
+                            <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    id="partTime"
+                                    name="partTime"
+                                    {{if .Data.SearchCriteria.PartTime}} checked{{end}}
+                            />
+                            <label class="form-check-label" for="partTime">
+                                Part-Time
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    id="fullTime"
+                                    name="fullTime"
+                                    {{if .Data.SearchCriteria.FullTime}} checked{{end}}
+                            />
+                            <label class="form-check-label" for="full-time">
+                                Full-Time
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    id="freelance"
+                                    name="freelance"
+                                    {{if .Data.SearchCriteria.Freelance}} checked{{end}}
+                            />
+                            <label class="form-check-label" for="freelance">
+                                Freelance
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+
+                        <label>Remote</label>
+                        <div class="form-check">
+                            <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    id="remoteOnly"
+                                    name="remoteOnly"
+                                    {{if .Data.SearchCriteria.RemoteOnly}} checked{{end}}
+                            />
+                            <label class="form-check-label" for="remote-only">
+                                Remote-Only
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    id="officeOnly"
+                                    name="officeOnly"
+                                    {{if .Data.SearchCriteria.OfficeOnly}} checked{{end}}
+                            />
+                            <label class="form-check-label" for="Office-Only">
+                                Office-Only
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    id="partialRemote"
+                                    name="partialRemote"
+                                    {{if .Data.SearchCriteria.PartialRemote}} checked{{end}}
+                            />
+                            <label class="form-check-label" for="partial-remote">
+                                Partial-Remote
+                            </label>
+                        </div>
+
+                    </div>
+                    <div class="col-lg-12">
+                        <label>Date Posted</label>
+                        <div class="form-check">
+                            <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    id="today"
+                                    name="today"
+                                    {{if .Data.SearchCriteria.Today}} checked{{end}}
+                            />
+                            <label class="form-check-label" for="today"> Today </label>
+                        </div>
+                        <div class="form-check">
+                            <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    id="days7"
+                                    name="days7"
+                                    {{if .Data.SearchCriteria.Days7}} checked{{end}}
+                            />
+                            <label class="form-check-label" for="7days">
+                                Last 7 Days
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    id="days30"
+                                    name="days30"
+                                    {{if .Data.SearchCriteria.Days30}} checked{{end}}
+                            />
+                            <label class="form-check-label" for="30days">
+                                Last 30 Days
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <input id="title" name="title" type="hidden" value="{{.Data.SearchCriteria.Title}}">
+                <input id="location" name="location" type="hidden" value="{{.Data.SearchCriteria.Location}}">
+            </form>
+        </div>
+        {{end}}
+    </div>
 
     <article>
+        {{if eq $auth 2}}<!--jobseeker-->
+        <div class="box">
+            <h1 class="primary-title">Candidate Dashboard</h1>
+            <div class="inner">
+                <input id="titleField" name="titleField" class="radius-left" type="text" placeholder="Search for a job" value="{{.Data.SearchCriteria.Title}}" onchange='document.getElementById("title").value = document.getElementById("titleField").value'/>
+                <input id="locationField" name="locationField" type="text" placeholder="Job Location" value="{{.Data.SearchCriteria.Location}}" onchange='document.getElementById("location").value = document.getElementById("locationField").value'/>
+                <button class="radius-right" type="submit" form="myForm"><i class="fa fa-search"></i></button>
+            </div>
+        </div>
+        {{end}}
+
         {{if eq $auth 1}}<!--recruiter-->
         <div class="box">
             <h1 class="primary-title">Recruiter Dashboard</h1>
@@ -63,6 +206,8 @@
     </article>
 
 </section>
+
+
 {{end}}
 
 {{define "js"}}

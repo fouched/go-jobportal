@@ -22,6 +22,7 @@ func (app *application) routes() http.Handler {
 		mux.Use(app.Auth)
 
 		mux.Get("/dashboard", app.Dashboard)
+		mux.Post("/dashboard", app.Dashboard)
 
 		mux.Get("/job-post", app.JobPost)
 		mux.Post("/job-post/edit/{id}", app.JobPostEdit)

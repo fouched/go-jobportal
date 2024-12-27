@@ -180,6 +180,12 @@ func (app *application) Dashboard(w http.ResponseWriter, r *http.Request) {
 		if p.ProfilePhoto != "" {
 			data["ProfilePhoto"] = p.ProfilePhoto
 		}
+
+		jp, err := app.DB.GetRecruiterJobPosts(userId)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+		data["JobPosts"] = jp
 	} else {
 		p, err := app.DB.GetJobSeekerProfile(userId)
 		if err != nil {
@@ -191,13 +197,16 @@ func (app *application) Dashboard(w http.ResponseWriter, r *http.Request) {
 		if p.ProfilePhoto != "" {
 			data["ProfilePhoto"] = p.ProfilePhoto
 		}
-	}
 
-	jp, err := app.DB.GetRecruiterJobPosts(userId)
-	if err != nil {
-		app.errorLog.Println(err)
+		if r.Method == "POST" {
+			sc, jp, err := app.DB.SearchJobPosts(r)
+			if err != nil {
+				app.errorLog.Println(err)
+			}
+			data["SearchCriteria"] = sc
+			data["JobPosts"] = jp
+		}
 	}
-	data["JobPosts"] = jp
 
 	if err := app.renderTemplate(w, r, "dashboard", &templateData{
 		IntMap: intMap,
