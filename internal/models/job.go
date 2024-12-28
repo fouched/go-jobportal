@@ -30,16 +30,22 @@ type JobPost struct {
 	Salary          string
 	Remote          string
 	PostedDate      time.Time
-	IsActive        bool
-	IsSaved         bool
+	HasApplied      bool
+	HasSaved        bool
 }
 
-type JobSeekerApply struct {
-	ID               int
-	JobSeekerProfile JobSeekerProfile
-	JobPost          JobPost
-	ApplyDate        time.Time
-	CoverLetter      string
+type JobApplication struct {
+	ID          int
+	ApplyDate   time.Time
+	CoverLetter string
+	JobPostID   int
+	UserID      int
+}
+
+type JobSave struct {
+	ID        int
+	JobPostID int
+	UserID    int
 }
 
 type JobSeekerSave struct {
@@ -149,6 +155,9 @@ func (m *DBModel) GetRecruiterJobPosts(id int) ([]*JobPost, error) {
 			&jp.Company.ID,
 			&jp.Company.Name,
 		)
+		if err != nil {
+			return jobPosts, err
+		}
 
 		jobPosts = append(jobPosts, &jp)
 	}
@@ -195,4 +204,95 @@ func (m *DBModel) GetJob(id int) (*JobPost, error) {
 	//TODO: applicants for the JobPost
 
 	return &jp, nil
+}
+
+func (m *DBModel) GetJobApplicationsByUserId(id int) ([]*JobApplication, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := "select id, apply_date, cover_letter, job, user_id from job_seeker_apply where user_id = ?"
+	rows, err := m.DB.QueryContext(ctx, query, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var jobApplications []*JobApplication
+	for rows.Next() {
+		var ja JobApplication
+		err = rows.Scan(
+			&ja.ID,
+			&ja.ApplyDate,
+			&ja.CoverLetter,
+			&ja.JobPostID,
+			&ja.UserID,
+		)
+		if err != nil {
+			return jobApplications, err
+		}
+
+		jobApplications = append(jobApplications, &ja)
+	}
+
+	return jobApplications, nil
+}
+
+func (m *DBModel) GetJobApplicationsByJobPostId(id int) ([]*JobApplication, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := "select id, apply_date, cover_letter, job, user_id from job_seeker_apply where job = ?"
+	rows, err := m.DB.QueryContext(ctx, query, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var jobApplications []*JobApplication
+	for rows.Next() {
+		var ja JobApplication
+		err = rows.Scan(
+			&ja.ID,
+			&ja.ApplyDate,
+			&ja.CoverLetter,
+			&ja.JobPostID,
+			&ja.UserID,
+		)
+		if err != nil {
+			return jobApplications, err
+		}
+
+		jobApplications = append(jobApplications, &ja)
+	}
+
+	return jobApplications, nil
+}
+
+func (m *DBModel) GetJobSavesByUserId(id int) ([]*JobSave, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := "select id,  job, user_id from job_seeker_apply where user_id = ?"
+	rows, err := m.DB.QueryContext(ctx, query, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var jobSaves []*JobSave
+	for rows.Next() {
+		var js JobSave
+		err = rows.Scan(
+			&js.ID,
+			&js.JobPostID,
+			&js.UserID,
+		)
+		if err != nil {
+			return jobSaves, err
+		}
+
+		jobSaves = append(jobSaves, &js)
+	}
+
+	return jobSaves, nil
 }

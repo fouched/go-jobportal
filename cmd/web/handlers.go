@@ -169,6 +169,14 @@ func (app *application) Dashboard(w http.ResponseWriter, r *http.Request) {
 	userId := app.Session.GetInt(r.Context(), "userID")
 	userTypeID := app.Session.GetInt(r.Context(), "userTypeID")
 
+	// get all job posts
+	searchCriteria, jobPosts, err := app.DB.SearchJobPosts(r)
+	if err != nil {
+		app.errorLog.Println(err)
+	}
+	data["SearchCriteria"] = searchCriteria
+	data["JobPosts"] = jobPosts
+
 	if userTypeID == 1 {
 		p, err := app.DB.GetRecruiterProfile(userId)
 		if err != nil {
@@ -199,12 +207,44 @@ func (app *application) Dashboard(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if r.Method == "POST" {
-			sc, jp, err := app.DB.SearchJobPosts(r)
+			var hasApplied bool
+			var hasSaved bool
+
+			jobApplications, err := app.DB.GetJobApplicationsByUserId(userId)
 			if err != nil {
 				app.errorLog.Println(err)
 			}
-			data["SearchCriteria"] = sc
-			data["JobPosts"] = jp
+			jobSaves, err := app.DB.GetJobSavesByUserId(userId)
+			if err != nil {
+				app.errorLog.Println(err)
+			}
+
+			for _, jobPost := range jobPosts {
+				hasApplied = false
+				hasSaved = false
+
+				for _, a := range jobApplications {
+					if jobPost.ID == a.JobPostID {
+						hasApplied = true
+						break
+					}
+				}
+
+				for _, s := range jobSaves {
+					if jobPost.ID == s.JobPostID {
+						hasSaved = true
+						break
+					}
+				}
+
+				if !hasApplied {
+					jobPost.HasApplied = false
+				}
+				if !hasSaved {
+					jobPost.HasSaved = false
+				}
+
+			}
 		}
 	}
 
