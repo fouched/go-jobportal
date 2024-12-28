@@ -149,8 +149,8 @@
         <div class="box">
             <h1 class="primary-title">Candidate Dashboard</h1>
             <div class="inner">
-                <input id="titleField" name="titleField" class="radius-left" type="text" placeholder="Search for a job" value="{{.Data.SearchCriteria.Title}}" onchange='document.getElementById("title").value = document.getElementById("titleField").value'/>
-                <input id="locationField" name="locationField" type="text" placeholder="Job Location" value="{{.Data.SearchCriteria.Location}}" onchange='document.getElementById("location").value = document.getElementById("locationField").value'/>
+                <input id="titleField" name="titleField" class="radius-left" type="text" placeholder="Search for a job" value="{{.Data.SearchCriteria.Title}}"/>
+                <input id="locationField" name="locationField" type="text" placeholder="Job Location" value="{{.Data.SearchCriteria.Location}}"/>
                 <button class="radius-right" type="submit" form="myForm"><i class="fa fa-search"></i></button>
             </div>
         </div>
@@ -211,6 +211,13 @@
 {{end}}
 
 {{define "js"}}
-
+<script>
+    $('#titleField').change(function() {
+        $('#title').val($(this).val());
+    });
+    $('#locationField').change(function() {
+        $('#location').val($(this).val());
+    });
+</script>
 {{end}}
 </body>
