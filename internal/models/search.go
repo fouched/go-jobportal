@@ -22,6 +22,7 @@ type SearchCriteria struct {
 }
 
 func (m *DBModel) SearchJobPosts(r *http.Request) (SearchCriteria, []*JobPost, error) {
+	//TODO this really needs pagination
 	var searchCriteria SearchCriteria
 	var jobPosts []*JobPost
 

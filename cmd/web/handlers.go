@@ -169,14 +169,6 @@ func (app *application) Dashboard(w http.ResponseWriter, r *http.Request) {
 	userId := app.Session.GetInt(r.Context(), "userID")
 	userTypeID := app.Session.GetInt(r.Context(), "userTypeID")
 
-	// get all job posts
-	searchCriteria, jobPosts, err := app.DB.SearchJobPosts(r)
-	if err != nil {
-		app.errorLog.Println(err)
-	}
-	data["SearchCriteria"] = searchCriteria
-	data["JobPosts"] = jobPosts
-
 	if userTypeID == 1 {
 		p, err := app.DB.GetRecruiterProfile(userId)
 		if err != nil {
@@ -189,11 +181,11 @@ func (app *application) Dashboard(w http.ResponseWriter, r *http.Request) {
 			data["ProfilePhoto"] = p.ProfilePhoto
 		}
 
-		jp, err := app.DB.GetRecruiterJobPosts(userId)
+		jobPosts, err := app.DB.GetRecruiterJobPosts(userId)
 		if err != nil {
 			app.errorLog.Println(err)
 		}
-		data["JobPosts"] = jp
+		data["JobPosts"] = jobPosts
 	} else {
 		p, err := app.DB.GetJobSeekerProfile(userId)
 		if err != nil {
@@ -206,45 +198,53 @@ func (app *application) Dashboard(w http.ResponseWriter, r *http.Request) {
 			data["ProfilePhoto"] = p.ProfilePhoto
 		}
 
-		if r.Method == "POST" {
-			var hasApplied bool
-			var hasSaved bool
+		// search job posts
+		searchCriteria, jobPosts, err := app.DB.SearchJobPosts(r)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+		data["SearchCriteria"] = searchCriteria
+		data["JobPosts"] = jobPosts
+		//TODO SearchCriteria should be stored in the session
+		// this will allow the search to persist after an application / save
 
-			jobApplications, err := app.DB.GetJobApplicationsByUserId(userId)
-			if err != nil {
-				app.errorLog.Println(err)
+		var hasApplied bool
+		var hasSaved bool
+
+		jobApplications, err := app.DB.GetJobApplicationsByUserId(userId)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+		jobSaves, err := app.DB.GetJobSavesByUserId(userId)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+
+		for _, jobPost := range jobPosts {
+			hasApplied = false
+			hasSaved = false
+
+			for _, a := range jobApplications {
+				if jobPost.ID == a.JobPostID {
+					hasApplied = true
+					break
+				}
 			}
-			jobSaves, err := app.DB.GetJobSavesByUserId(userId)
-			if err != nil {
-				app.errorLog.Println(err)
+
+			for _, s := range jobSaves {
+				if jobPost.ID == s.JobPostID {
+					hasSaved = true
+					break
+				}
 			}
 
-			for _, jobPost := range jobPosts {
-				hasApplied = false
-				hasSaved = false
-
-				for _, a := range jobApplications {
-					if jobPost.ID == a.JobPostID {
-						hasApplied = true
-						break
-					}
-				}
-
-				for _, s := range jobSaves {
-					if jobPost.ID == s.JobPostID {
-						hasSaved = true
-						break
-					}
-				}
-
-				if !hasApplied {
-					jobPost.HasApplied = false
-				}
-				if !hasSaved {
-					jobPost.HasSaved = false
-				}
-
+			if hasApplied {
+				jobPost.HasApplied = true
 			}
+			if hasSaved {
+				jobPost.HasSaved = true
+			}
+
 		}
 	}
 
@@ -399,6 +399,8 @@ func (app *application) JobPostSave(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) JobDetails(w http.ResponseWriter, r *http.Request) {
+	userID := app.Session.GetInt(r.Context(), "userID")
+
 	intMap := make(map[string]int)
 	intMap["ShowNav"] = 1
 
@@ -411,6 +413,15 @@ func (app *application) JobDetails(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	count, err := app.DB.GetJobApplicationCountForUserId(jobID, userID)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+	if count > 0 {
+		jd.HasApplied = true
+	}
+
 	data := make(map[string]interface{})
 	data["JobDetails"] = jd
 
@@ -420,6 +431,19 @@ func (app *application) JobDetails(w http.ResponseWriter, r *http.Request) {
 	}); err != nil {
 		app.errorLog.Println(err)
 	}
+}
+
+func (app *application) JobDetailsApply(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	jobID, _ := strconv.Atoi(id)
+
+	err := app.DB.SaveJobApplication(jobID, app.Session.GetInt(r.Context(), "userID"))
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
 }
 
 func (app *application) JobSeekerProfile(w http.ResponseWriter, r *http.Request) {

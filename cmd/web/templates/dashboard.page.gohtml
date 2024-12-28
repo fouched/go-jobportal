@@ -182,10 +182,10 @@
                                     {{end}}
 
                                     {{if eq $auth 2}}<!--jobseeker-->
-                                        {{if .IsActive}}
+                                        {{if .HasApplied}}
                                         <span class="title-span">(Applied)</span>
                                         {{end}}
-                                        {{if .IsSaved}}
+                                        {{if .HasSaved}}
                                         <span class="title-span">(Saved)</span>
                                         {{end}}
                                     {{end}}

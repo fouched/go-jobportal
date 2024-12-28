@@ -31,6 +31,7 @@
         </div>
         <div class="box mt-3">
             <label class="large-label px-3 mt-3"> Job Specs </label>
+
             <div class="job-row">
                 <div class="row ">
                     <div class="col-md-3">
@@ -46,6 +47,11 @@
                         <label>Remote: <span>{{.Data.JobDetails.Remote}}</span></label>
                     </div>
                 </div>
+            </div>
+
+            <div class="px-3 mb-3">
+                <label class="large-label "> Job Description </label>
+                <div>{{.Data.JobDetails.Description | unescapeHTML}}</div>
             </div>
 
             {{if eq $auth 1}}<!--recruiter-->
@@ -76,6 +82,29 @@
                         </div>
                     </div>
                 </div>
+            {{else}}<!--jobseeker-->
+            <div class="mt-3 px-3">
+                <div class="row">
+                    <div class="col-md-3">
+                        <form action="/admin/job-details/apply/{{.Data.JobDetails.ID}}" method="post">
+                            {{if .Data.JobDetails.HasApplied}}
+                                <button class="btn-sec btn-red w-100" disabled>Already Applied</button>
+                            {{else}}
+                                <button class="btn-sec btn-red w-100" type="submit">Apply Now</button>
+                            {{end}}
+                        </form>
+                    </div>
+                    <div class="col-md-3">
+                        <form action="/admin/job-details/save/{{.Data.JobDetails.ID}}" method="post">
+                            {{if .Data.JobDetails.HasSaved}}
+                                <button class="btn-sec btn-black w-100" disabled>Already Saved</button>
+                            {{else}}
+                                <button class="btn-sec btn-black w-100" type="submit">Save Job</button>
+                            {{end}}
+                        </form>
+                    </div>
+                </div>
+            </div>
             {{end}}
 
             </div>

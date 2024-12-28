@@ -201,9 +201,40 @@ func (m *DBModel) GetJob(id int) (*JobPost, error) {
 		return nil, err
 	}
 
-	//TODO: applicants for the JobPost
-
 	return &jp, nil
+}
+
+func (m *DBModel) GetJobApplicationCountForUserId(jobPostID, userID int) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	var count int
+
+	query := "select count(id) from job_seeker_apply where job = ? and user_id = ?"
+	err := m.DB.QueryRowContext(ctx, query, jobPostID, userID).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (m *DBModel) SaveJobApplication(jobPostId, userId int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := "insert into job_seeker_apply (apply_date, cover_letter, job, user_id) values (?, ?, ?, ?)"
+	_, err := m.DB.ExecContext(ctx, stmt,
+		time.Now(),
+		"",
+		jobPostId,
+		userId,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (m *DBModel) GetJobApplicationsByUserId(id int) ([]*JobApplication, error) {
@@ -272,7 +303,7 @@ func (m *DBModel) GetJobSavesByUserId(id int) ([]*JobSave, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := "select id,  job, user_id from job_seeker_apply where user_id = ?"
+	query := "select id,  job, user_id from job_seeker_save where user_id = ?"
 	rows, err := m.DB.QueryContext(ctx, query, id)
 	if err != nil {
 		return nil, err
