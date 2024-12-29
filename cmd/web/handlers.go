@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/fouched/go-jobportal/internal/models"
 	"github.com/fouched/go-jobportal/internal/validator"
 	"github.com/fouched/toolkit/v2"
@@ -170,35 +171,12 @@ func (app *application) Dashboard(w http.ResponseWriter, r *http.Request) {
 	userTypeID := app.Session.GetInt(r.Context(), "userTypeID")
 
 	if userTypeID == 1 {
-		p, err := app.DB.GetRecruiterProfile(userId)
-		if err != nil {
-			app.errorLog.Println(err)
-		}
-		if p.FirstName != "" && p.LastName != "" {
-			data["FullName"] = p.FirstName + " " + p.LastName
-		}
-		if p.ProfilePhoto != "" {
-			data["ProfilePhoto"] = p.ProfilePhoto
-		}
-
 		jobPosts, err := app.DB.GetRecruiterJobPosts(userId)
 		if err != nil {
 			app.errorLog.Println(err)
 		}
 		data["JobPosts"] = jobPosts
 	} else {
-		p, err := app.DB.GetJobSeekerProfile(userId)
-		if err != nil {
-			app.errorLog.Println(err)
-		}
-		if p.FirstName != "" && p.LastName != "" {
-			data["FullName"] = p.FirstName + " " + p.LastName
-		}
-		if p.ProfilePhoto != "" {
-			data["ProfilePhoto"] = p.ProfilePhoto
-		}
-
-		// search job posts
 		searchCriteria, jobPosts, err := app.DB.SearchJobPosts(r)
 		if err != nil {
 			app.errorLog.Println(err)
@@ -215,7 +193,7 @@ func (app *application) Dashboard(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			app.errorLog.Println(err)
 		}
-		jobSaves, err := app.DB.GetJobSavesByUserId(userId)
+		jobSaves, err := app.DB.GetSavedJobsByUserId(userId)
 		if err != nil {
 			app.errorLog.Println(err)
 		}
@@ -232,7 +210,7 @@ func (app *application) Dashboard(w http.ResponseWriter, r *http.Request) {
 			}
 
 			for _, s := range jobSaves {
-				if jobPost.ID == s.JobPostID {
+				if jobPost.ID == s.JobPost.ID {
 					hasSaved = true
 					break
 				}
@@ -407,6 +385,8 @@ func (app *application) JobDetails(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	jobID, _ := strconv.Atoi(id)
 
+	app.infoLog.Println(fmt.Sprintf("JobDetails, userId: %d, job id: %d", userID, jobID))
+
 	jd, err := app.DB.GetJob(jobID)
 	if err != nil {
 		app.errorLog.Println(err)
@@ -422,6 +402,15 @@ func (app *application) JobDetails(w http.ResponseWriter, r *http.Request) {
 		jd.HasApplied = true
 	}
 
+	count, err = app.DB.GetJobSaveCountForUserId(jobID, userID)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+	if count > 0 {
+		jd.HasSaved = true
+	}
+
 	data := make(map[string]interface{})
 	data["JobDetails"] = jd
 
@@ -433,11 +422,47 @@ func (app *application) JobDetails(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (app *application) SavedJobs(w http.ResponseWriter, r *http.Request) {
+	userID := app.Session.GetInt(r.Context(), "userID")
+
+	intMap := make(map[string]int)
+	intMap["ShowNav"] = 1
+
+	data := make(map[string]interface{})
+	sj, err := app.DB.GetSavedJobsByUserId(userID)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+	data["SavedJobs"] = sj
+
+	if err := app.renderTemplate(w, r, "saved-jobs", &templateData{
+		IntMap: intMap,
+		Data:   data,
+	}); err != nil {
+		app.errorLog.Println(err)
+	}
+
+}
+
 func (app *application) JobDetailsApply(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	jobID, _ := strconv.Atoi(id)
 
 	err := app.DB.SaveJobApplication(jobID, app.Session.GetInt(r.Context(), "userID"))
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
+}
+
+func (app *application) JobDetailsSave(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	jobID, _ := strconv.Atoi(id)
+
+	err := app.DB.SaveJobInterest(jobID, app.Session.GetInt(r.Context(), "userID"))
 	if err != nil {
 		app.errorLog.Println(err)
 		return
@@ -491,8 +516,7 @@ func (app *application) JobSeekerProfileSave(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// UploadFiles also parsed the form, so it is available to us
-	// parse the skills
+	// UploadFiles also parsed the form, so it is available to us get the skills
 	var skills []models.Skill
 	skillNames := r.Form["skillName"]
 	skillExperienceLevel := r.Form["skillExperienceLevel"]

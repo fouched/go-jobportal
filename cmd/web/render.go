@@ -103,8 +103,36 @@ func (app *application) parseTemplate(partials []string, page, templateToRender 
 
 func (app *application) addDefaultData(td *templateData, r *http.Request) *templateData {
 	if app.Session.Exists(r.Context(), "userID") {
-		td.AuthLevel = app.Session.GetInt(r.Context(), "userTypeID")
+		userId := app.Session.GetInt(r.Context(), "userID")
+		authLevel := app.Session.GetInt(r.Context(), "userTypeID")
+
+		td.AuthLevel = authLevel
 		td.UserName = app.Session.GetString(r.Context(), "userName")
+
+		if authLevel == 1 { // recruiter
+			p, err := app.DB.GetRecruiterProfile(userId)
+			if err != nil {
+				app.errorLog.Println(err)
+			}
+			if p.FirstName != "" && p.LastName != "" {
+				td.Data["FullName"] = p.FirstName + " " + p.LastName
+			}
+			if p.ProfilePhoto != "" {
+				td.Data["ProfilePhoto"] = p.ProfilePhoto
+			}
+		} else { // jobseeker
+			p, err := app.DB.GetJobSeekerProfile(userId)
+			if err != nil {
+				app.errorLog.Println(err)
+			}
+			if p.FirstName != "" && p.LastName != "" {
+				td.Data["FullName"] = p.FirstName + " " + p.LastName
+			}
+			if p.ProfilePhoto != "" {
+				td.Data["ProfilePhoto"] = p.ProfilePhoto
+			}
+		}
+
 	} else {
 		td.AuthLevel = 0
 	}

@@ -43,9 +43,9 @@ type JobApplication struct {
 }
 
 type JobSave struct {
-	ID        int
-	JobPostID int
-	UserID    int
+	ID      int
+	UserID  int
+	JobPost JobPost
 }
 
 type JobSeekerSave struct {
@@ -219,6 +219,21 @@ func (m *DBModel) GetJobApplicationCountForUserId(jobPostID, userID int) (int, e
 	return count, nil
 }
 
+func (m *DBModel) GetJobSaveCountForUserId(jobPostID, userID int) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	var count int
+
+	query := "select count(id) from job_seeker_save where job = ? and user_id = ?"
+	err := m.DB.QueryRowContext(ctx, query, jobPostID, userID).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
 func (m *DBModel) SaveJobApplication(jobPostId, userId int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -227,6 +242,22 @@ func (m *DBModel) SaveJobApplication(jobPostId, userId int) error {
 	_, err := m.DB.ExecContext(ctx, stmt,
 		time.Now(),
 		"",
+		jobPostId,
+		userId,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *DBModel) SaveJobInterest(jobPostId, userId int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := "insert into job_seeker_save (job, user_id) values (?, ?)"
+	_, err := m.DB.ExecContext(ctx, stmt,
 		jobPostId,
 		userId,
 	)
@@ -299,11 +330,21 @@ func (m *DBModel) GetJobApplicationsByJobPostId(id int) ([]*JobApplication, erro
 	return jobApplications, nil
 }
 
-func (m *DBModel) GetJobSavesByUserId(id int) ([]*JobSave, error) {
+func (m *DBModel) GetSavedJobsByUserId(id int) ([]*JobSave, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := "select id,  job, user_id from job_seeker_save where user_id = ?"
+	query := `
+		select s.id, s.user_id,
+		       j.job_post_id, j.job_title, j.job_type, j.remote, j.salary,
+		       l.id as locationId, l.city, l.state, l.country,
+		       c.id as companyId, c.name
+		from job_seeker_save s
+		    inner join job_post_activity j on s.job = j.job_post_id
+		    inner join job_location l on j.job_post_id = l.job_post_activity_id
+		    inner join job_company c  on j.job_post_id = c.job_post_activity_id
+		and s.user_id = ?  
+	`
 	rows, err := m.DB.QueryContext(ctx, query, id)
 	if err != nil {
 		return nil, err
@@ -315,8 +356,18 @@ func (m *DBModel) GetJobSavesByUserId(id int) ([]*JobSave, error) {
 		var js JobSave
 		err = rows.Scan(
 			&js.ID,
-			&js.JobPostID,
 			&js.UserID,
+			&js.JobPost.ID,
+			&js.JobPost.JobTitle,
+			&js.JobPost.JobType,
+			&js.JobPost.Remote,
+			&js.JobPost.Salary,
+			&js.JobPost.Location.ID,
+			&js.JobPost.Location.City,
+			&js.JobPost.Location.State,
+			&js.JobPost.Location.Country,
+			&js.JobPost.Company.ID,
+			&js.JobPost.Company.Name,
 		)
 		if err != nil {
 			return jobSaves, err

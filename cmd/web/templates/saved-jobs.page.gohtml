@@ -1,0 +1,51 @@
+{{template "base" .}}
+{{define "title"}}
+    Test Page HotDev Jobs
+{{end}}
+{{define "css"}}
+{{end}}
+<body>
+{{define "page-header"}}
+{{end}}
+{{define "content"}}
+<section class="section">
+    <div class="sidenav px-5">
+        <hr/>
+    </div>
+    <article>
+
+        <div class="box">
+            <h1 class="primary-title">Saved Jobs</h1>
+        </div>
+
+        <div class="box mt-3">
+            <label class="large-label px-3 mb-3">Results</label>
+            {{range .Data.SavedJobs}}
+                <a href="/admin/job-details/{{.JobPost.ID}}" style=" text-decoration:none; color:black;">
+                    <div onclick="window.location='/job-details/{{.JobPost.ID}}'" class="job-row">
+                        <div class="row ">
+                            <div class="col-md-4">
+                                <label class="job-title text-left">
+                                    {{.JobPost.JobTitle}}
+                                </label>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <label>{{.JobPost.Location.City}}, {{.JobPost.Location.State}}</label>
+                            </div>
+                            <div class="col-md-4 text-right">
+                                <label>{{.JobPost.Company.Name}}</label>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            {{end}}
+        </div>
+
+    </article>
+</section>
+{{end}}
+
+{{define "js"}}
+
+{{end}}
+</body>
