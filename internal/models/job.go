@@ -35,11 +35,12 @@ type JobPost struct {
 }
 
 type JobApplication struct {
-	ID          int
-	ApplyDate   time.Time
-	CoverLetter string
-	JobPostID   int
-	UserID      int
+	ID               int
+	ApplyDate        time.Time
+	CoverLetter      string
+	JobPostID        int
+	UserID           int
+	JobSeekerProfile JobSeekerProfile
 }
 
 type JobSave struct {
@@ -303,7 +304,12 @@ func (m *DBModel) GetJobApplicationsByJobPostId(id int) ([]*JobApplication, erro
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := "select id, apply_date, cover_letter, job, user_id from job_seeker_apply where job = ?"
+	query := `
+		select j.id, j.apply_date, j.cover_letter, j.job, j.user_id, p.first_name, p.last_name 
+		from job_seeker_apply j
+			inner join job_seeker_profile p on j.user_id = p.user_account_id
+		where job = ?
+	`
 	rows, err := m.DB.QueryContext(ctx, query, id)
 	if err != nil {
 		return nil, err
@@ -319,6 +325,8 @@ func (m *DBModel) GetJobApplicationsByJobPostId(id int) ([]*JobApplication, erro
 			&ja.CoverLetter,
 			&ja.JobPostID,
 			&ja.UserID,
+			&ja.JobSeekerProfile.FirstName,
+			&ja.JobSeekerProfile.LastName,
 		)
 		if err != nil {
 			return jobApplications, err

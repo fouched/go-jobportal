@@ -64,6 +64,9 @@
                         <div class="col-md-3 centerCandidate">
                             <div class="candidatesApplied">
                                 <label>Candidates for Job</label>
+                                {{range .Data.JobApplications}}
+                                    <br><a href="/admin/job-seeker-profile/{{.UserID}}" class="white">{{.JobSeekerProfile.FirstName}} {{.JobSeekerProfile.LastName}}</a>
+                                {{end}}
                             </div>
                         </div>
                     </div>

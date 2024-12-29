@@ -32,6 +32,7 @@ func (app *application) routes() http.Handler {
 		mux.Post("/recruiter-profile/save", app.RecruiterProfileSave)
 
 		mux.Get("/job-seeker-profile", app.JobSeekerProfile)
+		mux.Get("/job-seeker-profile/{id}", app.JobSeekerProfile)
 		mux.Post("/job-seeker-profile/save", app.JobSeekerProfileSave)
 
 		mux.Get("/job-details/{id}", app.JobDetails)
@@ -39,6 +40,7 @@ func (app *application) routes() http.Handler {
 		mux.Post("/job-details/save/{id}", app.JobDetailsSave)
 
 		mux.Get("/saved-jobs", app.SavedJobs)
+		mux.Get("/download-resume/{id}", app.DownloadResume)
 	})
 
 	fileServer := http.FileServer(http.Dir("./static/"))

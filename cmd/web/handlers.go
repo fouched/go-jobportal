@@ -393,6 +393,7 @@ func (app *application) JobDetails(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// jobseeker data
 	count, err := app.DB.GetJobApplicationCountForUserId(jobID, userID)
 	if err != nil {
 		app.errorLog.Println(err)
@@ -411,8 +412,16 @@ func (app *application) JobDetails(w http.ResponseWriter, r *http.Request) {
 		jd.HasSaved = true
 	}
 
+	// recruiter data
+	ja, err := app.DB.GetJobApplicationsByJobPostId(jobID)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
 	data := make(map[string]interface{})
 	data["JobDetails"] = jd
+	data["JobApplications"] = ja
 
 	if err := app.renderTemplate(w, r, "job-details", &templateData{
 		IntMap: intMap,
@@ -445,6 +454,22 @@ func (app *application) SavedJobs(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (app *application) DownloadResume(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	userID, _ := strconv.Atoi(id)
+
+	jp, err := app.DB.GetJobSeekerProfile(userID)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	extIdx := strings.LastIndex(jp.Resume, ".")
+
+	t := toolkit.Tools{}
+	t.DownloadStaticFile(w, r, "."+jp.Resume, jp.FirstName+"-"+jp.LastName+jp.Resume[extIdx:])
+}
+
 func (app *application) JobDetailsApply(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	jobID, _ := strconv.Atoi(id)
@@ -473,11 +498,21 @@ func (app *application) JobDetailsSave(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) JobSeekerProfile(w http.ResponseWriter, r *http.Request) {
 	data := make(map[string]interface{})
-	sp, err := app.DB.GetJobSeekerProfile(app.Session.GetInt(r.Context(), "userID"))
+	authLevel := app.Session.GetInt(r.Context(), "userTypeID")
+	userID := app.Session.GetInt(r.Context(), "userID")
+
+	if authLevel == 1 {
+		// recruiter - override user id to display job seeker profile
+		id := chi.URLParam(r, "id")
+		userID, _ = strconv.Atoi(id)
+	}
+
+	sp, err := app.DB.GetJobSeekerProfile(userID)
 	if err != nil {
 		app.errorLog.Println(err)
 	}
 
+	data["CandidateID"] = userID
 	data["FirstName"] = sp.FirstName
 	data["LastName"] = sp.LastName
 	data["City"] = sp.City

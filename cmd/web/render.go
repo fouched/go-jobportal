@@ -21,6 +21,7 @@ type templateData struct {
 	Warning    string
 	Error      string
 	AuthLevel  int
+	UserID     int
 	UserName   string
 	CSSVersion string
 	Validator  *validator.Validator
@@ -107,6 +108,7 @@ func (app *application) addDefaultData(td *templateData, r *http.Request) *templ
 		authLevel := app.Session.GetInt(r.Context(), "userTypeID")
 
 		td.AuthLevel = authLevel
+		td.UserID = userId
 		td.UserName = app.Session.GetString(r.Context(), "userName")
 
 		if authLevel == 1 { // recruiter

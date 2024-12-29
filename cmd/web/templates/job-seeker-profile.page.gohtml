@@ -20,11 +20,13 @@
         <div class="myForm">
             <form action="/admin/job-seeker-profile/save" method="post" enctype="multipart/form-data">
                 <div class="row" style="margin-right:0; margin-left:0;">
+
                     <div class="col-md-12">
                         <div class="d-flex justify-content-center pt-3">
                             <h1 class="heading_font font-weight-bold">Candidate</h1>
                         </div>
                     </div>
+                    {{if eq $auth 2}}
                     <div class="col-md-12">
                         <div>
                             <h2 class="heading_font d-flex justify-content-center">
@@ -32,6 +34,7 @@
                             </h2>
                         </div>
                     </div>
+                    {{end}}
                     <div class="col-md-12">
                         <label class="heading_font font_sub_heading_color">Name</label>
                         <div class="row">
@@ -163,15 +166,17 @@
                                 <label class="heading_font font_sub_heading_color">Resume</label>
                                 <input type="file" name="resume" class="form-control" accept="application/pdf"/>
                                 {{if eq $auth 1}}<!--recruiter-->
-                                    <a href="/job-seeker-profile/downloadResume?fileName=XYZ">Download Resume</a>
+                                    <a href="/admin/download-resume/{{.Data.CandidateID}}">Download Resume</a>
                                 {{end}}
                             </div>
                         </div>
 
                         <div class="row mt-3 col d-flex justify-content-center">
                             <div class="text-right">
-                                <button type="button" class="btn-sec btn-black base_button px-4 py-2 mb-5" onclick="history.back()">Back</button>&nbsp;
+                                <button type="button" id="backBtn" class="btn-sec btn-black base_button px-4 py-2 mb-5" onclick="history.back()">Back</button>&nbsp;
+                                {{if eq $auth 2}}<!--jobseeker-->
                                 <button type="submit" id="submit" name="submit" class="btn btn-primary base_button px-4 py-2">Save</button>
+                                {{end}}
                             </div>
                         </div>
 
@@ -191,6 +196,7 @@
     $("input").prop( "disabled", true );
     $("select").prop( "disabled", true );
     $("button").prop( "disabled", true );
+    $("#backBtn").prop( "disabled", false );
 </script>
 {{end}}
 
